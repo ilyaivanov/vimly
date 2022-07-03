@@ -6,6 +6,7 @@ import {
   Item,
   mapPartialItem,
   moveDown,
+  moveUp,
 } from "./app";
 
 it("creating a app with two items", () => {
@@ -35,7 +36,7 @@ it("creating a app with nested items", () => {
 
   expectItemToHaveGrid(app, "Item 1.1", 1, 1);
 });
-
+//Moving down
 it("having two items pressing down selectes Item 2", () => {
   const app = createApp([mapPartialItem("Item 1"), mapPartialItem("Item 2")]);
 
@@ -83,6 +84,44 @@ it("when last item is selected moving down does nothing", () => {
   changeSelection(app, findItemByName(app, "Item 2"));
   moveDown(app);
   expectItemToBeSelected(app, "Item 2");
+});
+
+// Moving up
+it("having two items pressing up selectes item above", () => {
+  const app = createApp([mapPartialItem("Item 1"), mapPartialItem("Item 2")]);
+
+  changeSelection(app, findItemByName(app, "Item 2"));
+  expectItemToBeSelected(app, "Item 2");
+
+  moveUp(app);
+  expectItemToBeSelected(app, "Item 1");
+});
+
+it("having three nested items when last item in branch in selected moving down selectes next sibling of the parent", () => {
+  const app = createApp([
+    mapPartialItem({
+      title: "Item 1",
+      children: [
+        mapPartialItem({
+          title: "Item 1.1",
+          children: [
+            mapPartialItem({
+              title: "Item 1.1.1",
+              isOpen: false,
+              children: [mapPartialItem("Item 1.1.1.1")],
+            }),
+          ],
+        }),
+      ],
+    }),
+    mapPartialItem({ title: "Item 2" }),
+  ]);
+
+  changeSelection(app, findItemByName(app, "Item 2"));
+  expectItemToBeSelected(app, "Item 2");
+
+  moveUp(app);
+  expectItemToBeSelected(app, "Item 1.1.1");
 });
 
 const expectItemToHaveGrid = (

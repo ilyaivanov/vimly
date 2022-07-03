@@ -7,7 +7,7 @@ export type Item = {
   parent?: Item;
 };
 
-type ItemView = {
+export type ItemView = {
   gridX: number;
   gridY: number;
   item: Item;
@@ -24,15 +24,16 @@ export const mapPartialItem = (item: Partial<Item> | string): Item => {
   if (typeof item === "string")
     return {
       title: item,
-      isOpen: true,
+      isOpen: false,
       children: [],
     };
   else {
+    const children = item.children ? item.children.map(mapPartialItem) : [];
     const res: Item = {
       title: "",
-      isOpen: true,
+      isOpen: children.length > 0,
       ...item,
-      children: item.children ? item.children.map(mapPartialItem) : [],
+      children,
     };
     res.children.forEach((c) => (c.parent = res));
     return res;
@@ -88,6 +89,9 @@ const hasVisibleChildren = (item: Item) =>
 export const moveDown = (app: AppState) =>
   app.selectedItem && changeSelection(app, getItemBelow(app.selectedItem));
 
+export const moveUp = (app: AppState) =>
+  app.selectedItem && changeSelection(app, getItemAbove(app.selectedItem));
+
 export const changeSelection = (app: AppState, item: Item | undefined) => {
   if (!item) return;
   const currentView = app.selectedItem?.view;
@@ -129,6 +133,28 @@ const getRelativeSibling = (
     const index = context.indexOf(item);
     return context[getItemIndex(index)];
   }
+};
+
+const getItemAbove = (item: Item): Item | undefined => {
+  const parent = item.parent;
+  if (parent) {
+    if (isBoard(parent)) return parent;
+
+    const index = parent.children.indexOf(item);
+    if (index > 0) {
+      const previousItem = parent.children[index - 1];
+      if (isBoard(previousItem) && previousItem.isOpen)
+        return getLastNestedItem(previousItem.children[0]);
+      return getLastNestedItem(previousItem);
+    } else if (!isRoot(parent)) return parent;
+  }
+};
+const getLastNestedItem = (item: Item): Item => {
+  if (item.isOpen && item.children) {
+    const { children } = item;
+    return getLastNestedItem(children[children.length - 1]);
+  }
+  return item;
 };
 
 const isBoard = (item: Item | undefined): boolean => false; //item?.view === "board";
