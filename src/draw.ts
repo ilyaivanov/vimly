@@ -1,4 +1,4 @@
-import { AppState, ItemView } from "./app";
+import { AppState, hasChildren, ItemView } from "./app";
 
 // Canvas Infra
 const VIEWPORT_MAX_WIDTH = 800;
@@ -111,10 +111,12 @@ export const drawApp = (app: AppState) => {
 
   window.ctx.translate(xOffset, yOffset);
 
-  for (let i = 0; i < app.views.length; i += 1) {
-    const view = app.views[i];
-    const parentView = view.item.parent?.view;
-    viewItem(view, parentView);
+  for (const item of app.views.keys()) {
+    const view = app.views.get(item);
+    if (view) {
+      const parentView = view.item.parent?.view;
+      viewItem(view, parentView);
+    }
   }
   window.ctx.resetTransform();
 };
@@ -128,7 +130,8 @@ const viewItem = (view: ItemView, parentView: ItemView | undefined) => {
   const textYOffset = 1;
   const textXOffset = textToCircleCenter;
 
-  fillCircle(x, y, 3.2, color);
+  if (hasChildren(view.item)) fillCircle(x, y, 3.2, color);
+
   outlineCircle(x, y, 3.2, 1.5, color);
   fillTextAtMiddle(
     view.item.title,

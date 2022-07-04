@@ -16,7 +16,7 @@ export type ItemView = {
 
 export type AppState = {
   root: Item;
-  views: ItemView[];
+  views: Map<Item, ItemView>;
   selectedItem: Item | undefined;
 };
 
@@ -42,16 +42,12 @@ export const mapPartialItem = (item: Partial<Item> | string): Item => {
 
 export const createApp = (items: Item[]): AppState => {
   const root: Item = mapPartialItem({ title: "Root", children: items });
-  const views: ItemView[] = [];
+  const views: Map<Item, ItemView> = new Map();
 
   const selectedItem = root.children[0];
 
   layoutRoot(root, (item, gridX, gridY) => {
-    const isSelected = item == selectedItem;
-    const view: ItemView = { gridX, gridY, item, isSelected };
-
-    item.view = view;
-    views.push(view);
+    views.set(item, createView(item, gridX, gridY, item === selectedItem));
   });
 
   return { root, views, selectedItem };
@@ -92,6 +88,47 @@ export const moveDown = (app: AppState) =>
 export const moveUp = (app: AppState) =>
   app.selectedItem && changeSelection(app, getItemAbove(app.selectedItem));
 
+export const moveLeft = (app: AppState) => {
+  if (app.selectedItem) {
+    if (app.selectedItem.isOpen) {
+      app.selectedItem.isOpen = false;
+      forEachChild(app.selectedItem, (item) => {
+        app.views.delete(item);
+      });
+      layoutRoot(app.root, (item, gridX, gridY) => {
+        const view = app.views.get(item);
+        if (view) {
+          view.gridX = gridX;
+          view.gridY = gridY;
+        }
+      });
+    } else if (app.selectedItem.parent && !isRoot(app.selectedItem.parent))
+      changeSelection(app, app.selectedItem.parent);
+  }
+};
+
+export const moveRight = (app: AppState) => {
+  if (app.selectedItem) {
+    if (app.selectedItem.isOpen && hasChildren(app.selectedItem)) {
+      changeSelection(app, app.selectedItem.children[0]);
+    } else if (!app.selectedItem.isOpen) {
+      app.selectedItem.isOpen = true;
+      layoutRoot(app.root, (item, gridX, gridY) => {
+        const view = app.views.get(item);
+        if (view) {
+          view.gridX = gridX;
+          view.gridY = gridY;
+        } else {
+          app.views.set(
+            item,
+            createView(item, gridX, gridY, item === app.selectedItem)
+          );
+        }
+      });
+    }
+  }
+};
+
 export const changeSelection = (app: AppState, item: Item | undefined) => {
   if (!item) return;
   const currentView = app.selectedItem?.view;
@@ -102,6 +139,17 @@ export const changeSelection = (app: AppState, item: Item | undefined) => {
   }
 };
 
+const createView = (
+  item: Item,
+  gridX: number,
+  gridY: number,
+  isSelected: boolean
+): ItemView => {
+  const view: ItemView = { gridX, gridY, item, isSelected };
+
+  item.view = view;
+  return view;
+};
 // MOVEMENT
 
 const getItemBelow = (item: Item): Item | undefined =>
@@ -172,9 +220,10 @@ export const forEachChild = (item: Item, cb: A2<Item, Item>) => {
   traverse(item.children);
 };
 
-const hasChildren = (item: Item) => item.children.length > 0;
+export const hasChildren = (item: Item) => item.children.length > 0;
 
 // canditates to extract
+
 type A1<T1> = (a: T1) => void;
 type A2<T1, T2> = (a: T1, b: T2) => void;
 type A3<T1, T2, T3> = (a: T1, b: T2, c: T3) => void;
@@ -182,3 +231,5 @@ type A3<T1, T2, T3> = (a: T1, b: T2, c: T3) => void;
 type F1<T1> = () => T1;
 type F2<T1, T2> = (a: T1) => T2;
 type F3<T1, T2, T3> = (a: T1, b: T2) => T3;
+
+type Predicate<T> = F2<T, boolean>;

@@ -6,6 +6,8 @@ import {
   Item,
   mapPartialItem,
   moveDown,
+  moveLeft,
+  moveRight,
   moveUp,
 } from "./app";
 
@@ -124,13 +126,59 @@ it("having three nested items when last item in branch in selected moving down s
   expectItemToBeSelected(app, "Item 1.1.1");
 });
 
+// Moving left
+it("having two nested items pressing left closes item", () => {
+  const app = createApp([
+    mapPartialItem({ title: "Item 1", children: [mapPartialItem("Item 1.1")] }),
+  ]);
+
+  const item1 = findItemByName(app, "Item 1");
+  expect(app.views.get(item1)!.item.isOpen).toBe(true);
+  moveLeft(app);
+  expect(app.views.get(item1)!.item.isOpen).toBe(false);
+});
+
+it("when closing an item position of items below are updated", () => {
+  const app = createApp([
+    mapPartialItem({ title: "Item 1", children: [mapPartialItem("Item 1.1")] }),
+    mapPartialItem("Item 2"),
+  ]);
+
+  const item2 = findItemByName(app, "Item 2");
+  expect(app.views.get(item2)?.gridY).toBe(2);
+  moveLeft(app);
+  expect(app.views.get(item2)?.gridY).toBe(1);
+});
+
+it("when opening an item position of items below are updated", () => {
+  const app = createApp([
+    mapPartialItem({
+      title: "Item 1",
+      isOpen: false,
+      children: [mapPartialItem("Item 1.1")],
+    }),
+    mapPartialItem("Item 2"),
+  ]);
+
+  const item2 = findItemByName(app, "Item 2");
+  expect(app.views.get(item2)?.gridY).toBe(1);
+  moveRight(app);
+  expect(app.views.get(item2)?.gridY).toBe(2);
+
+  const view11 = app.views.get(findItemByName(app, "Item 1.1"))!;
+  expect(view11.gridX).toBe(1);
+  expect(view11.gridY).toBe(1);
+});
+
 const expectItemToHaveGrid = (
   app: AppState,
   item: string,
   gridX: number,
   gridY: number
 ) => {
-  const view = app.views.find((v) => v.item.title === item);
+  const view = Array.from(app.views.values()).find(
+    (v) => v.item.title === item
+  );
   if (!view) throw new Error(`Item ${item} not found in views`);
 
   expect(view.gridX).toBe(gridX);
@@ -138,7 +186,9 @@ const expectItemToHaveGrid = (
 };
 
 const expectItemToBeSelected = (app: AppState, item: string) => {
-  const view = app.views.find((v) => v.item.title === item);
+  const view = Array.from(app.views.values()).find(
+    (v) => v.item.title === item
+  );
   if (!view) throw new Error(`Item ${item} not found in views`);
 
   expect(app.selectedItem!.title).toBe(item);
