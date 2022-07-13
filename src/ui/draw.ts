@@ -185,39 +185,3 @@ const roundToHalf = (x: number) => {
 const roundToWhole = (x: number) => {
   return Math.round(x);
 };
-
-// const drawLine = (x1: number, y1: number, x2: number, y2: number) => {
-//   const ctx = window.ctx;
-//   ctx.lineWidth = spacings.lineWidth;
-//   ctx.strokeStyle = theme.line;
-//   ctx.lineJoin = "round";
-//   ctx.beginPath();
-//   ctx.moveTo(x1, y1);
-//   ctx.lineTo(x2, y2);
-
-//   ctx.stroke();
-// }
-
-// const drawArrow = (x1: number, y1: number, x2: number, y2: number) => {
-//   const ctx = window.ctx;
-//   ctx.lineWidth = spacings.lineWidth;
-//   ctx.strokeStyle = theme.line;
-//   ctx.lineJoin = "round";
-//   ctx.beginPath();
-//   ctx.moveTo(x1, y1);
-//   ctx.lineTo(x2, y2);
-
-//   ctx.stroke();
-// }
-
-// const drawArrowHead = (x: number, y: number, angle: number) => {
-//   const ctx = window.ctx;
-//   ctx.lineWidth = spacings.lineWidth;
-//   ctx.strokeStyle = theme.line;
-//   ctx.lineJoin = "round";
-//   ctx.beginPath();
-//   ctx.moveTo(x, y);
-//   ctx.lineTo(x + Math.cos(angle) * spacings.arrowHeadLength, y + Math.sin(angle) * spacings.arrowHeadLength);
-//   ctx.lineTo(x + Math.cos(angle + Math.PI / 3) * spacings.arrowHeadLength, y + Math.sin(angle + Math.PI / 3) * spacings.arrowHeadLength);
-//   ctx.lineTo(x + Math.cos(angle - Math.PI / 3) * spacings.arrowHeadLength, y + Math.sin(angle - Math.PI / 3) * spacings.arrowHeadLength);
-//   ctx.lineTo(x, y);
