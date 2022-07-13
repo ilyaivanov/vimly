@@ -1,5 +1,5 @@
 import { AppState, Item } from "../core/app";
-import { xOffset } from "./draw";
+import { xOffset } from "./canvas";
 import { spacings, theme } from "./ui";
 
 export let itemEdited: Item | undefined = undefined;

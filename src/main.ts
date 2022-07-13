@@ -1,7 +1,9 @@
 import * as actions from "./core/app";
-import { drawApp, initCanvas, setOnResizeCb } from "./ui/draw";
+import { drawApp } from "./ui/draw";
 import data from "./data/viztly.json";
 import { itemEdited, showInput } from "./ui/input";
+import { theme } from "./ui/ui";
+import { initCanvas, setOnResizeCb } from "./ui/canvas";
 
 initCanvas();
 
@@ -30,5 +32,7 @@ document.addEventListener("keydown", (event) => {
   }
   drawApp(app);
 });
+
 drawApp(app);
+
 setOnResizeCb(() => drawApp(app));
