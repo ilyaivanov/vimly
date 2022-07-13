@@ -1,29 +1,10 @@
-import {
-  AppState,
-  createApp,
-  mapPartialItem,
-  moveDown,
-  moveLeft,
-  moveRight,
-  moveUp,
-} from "./app";
+import { createApp, moveDown, moveLeft, moveRight, moveUp } from "./app";
 import { drawApp, initCanvas, setOnResizeCb } from "./draw";
+import data from "./data/viztly.json";
 
 initCanvas();
 
-const app = createApp([
-  mapPartialItem({
-    title: "Item 1",
-    children: [
-      mapPartialItem("Item 1.1"),
-      mapPartialItem({
-        title: "Item 1.2",
-        children: [mapPartialItem("Item 1.2.1"), mapPartialItem("Item 1.2.2")],
-      }),
-    ],
-  }),
-  mapPartialItem("Item 2"),
-]);
+const app = createApp(data.children as any);
 
 document.addEventListener("keydown", (event) => {
   if (event.code === "ArrowDown") {
