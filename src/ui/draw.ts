@@ -18,7 +18,7 @@ export const initCanvas = () => {
     const height = window.innerHeight;
 
     xOffset = roundToWhole(
-      Math.max(0, (width - spacings.viewportMaxWidth) / 2)
+      Math.max(spacings.gridSize, (width - spacings.viewportMaxWidth) / 2)
     );
 
     canvas.width = width;
@@ -86,22 +86,6 @@ export const drawApp = (app: AppState) => {
 
   window.ctx.translate(xOffset, spacings.offsetFromTop);
 
-  // window.ctx.scale(15, 15);
-
-  if (!isRoot(app.itemFocused)) {
-    const textColor =
-      app.itemFocused == app.selectedItem ? theme.selected : theme.titleFont;
-
-    fillTextAtMiddle(
-      app.itemFocused.title,
-      -7,
-      0,
-      spacings.titleFontSize,
-      textColor
-    );
-    window.ctx.translate(0, spacings.focusedTitleOffset);
-  }
-
   for (const item of app.views.keys()) {
     const view = app.views.get(item);
     if (view) {
@@ -120,37 +104,47 @@ const viewItem = (
   view: ItemView,
   parentView: ItemView | undefined
 ) => {
-  const x = view.gridX * spacings.gridSize;
-  const y = view.gridY * spacings.gridSize;
+  const x = view.x;
+  const y = view.y;
   const color = view.isSelected ? theme.selected : theme.filledCircle;
 
   const isFirstLevel = view.item.parent == app.itemFocused;
 
+  const isItemFocused = view.item == app.itemFocused;
+
   const textColor = view.isSelected
     ? theme.selected
-    : isFirstLevel
+    : isFirstLevel || isItemFocused
     ? theme.firstLevelFont
     : theme.font;
 
   const textYOffset = 1;
   const textXOffset = spacings.textFromCircleDistance;
 
-  if (hasChildren(view.item)) fillCircle(x, y, spacings.circleRadius, color);
+  if (!isItemFocused) {
+    if (hasChildren(view.item)) fillCircle(x, y, spacings.circleRadius, color);
 
-  outlineCircle(x, y, spacings.circleRadius, spacings.circleLineWidth, color);
+    outlineCircle(x, y, spacings.circleRadius, spacings.circleLineWidth, color);
+  }
 
   if (view.item !== itemEdited) {
+    const fontSize = isItemFocused
+      ? spacings.titleFontSize
+      : isFirstLevel
+      ? spacings.firstLevelfontSize
+      : spacings.fontSize;
+
     fillTextAtMiddle(
       view.item.title,
       x + textXOffset,
       y + textYOffset,
-      isFirstLevel ? spacings.firstLevelfontSize : spacings.fontSize,
+      fontSize,
       textColor
     );
   }
 
   window.ctx.save();
-  if (parentView) lineBetween(view, parentView);
+  if (parentView && !isItemFocused) lineBetween(view, parentView);
   window.ctx.restore();
 };
 

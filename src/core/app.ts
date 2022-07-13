@@ -1,3 +1,5 @@
+import { spacings } from "../ui/ui";
+
 export type Item = {
   title: string;
   isOpen: boolean;
@@ -12,6 +14,9 @@ export type ItemView = {
   gridY: number;
   item: Item;
   isSelected: boolean;
+
+  x: number;
+  y: number;
 };
 
 export type AppState = {
@@ -47,11 +52,13 @@ export const createApp = (items: Item[]): AppState => {
 
   const selectedItem = root.children[0];
 
-  layoutRoot(root, (item, gridX, gridY) => {
-    views.set(item, createView(item, gridX, gridY, item === selectedItem));
+  const app = { root, views, selectedItem, itemFocused: root };
+
+  layout(app, root, (item, gridX, gridY) => {
+    app.views.set(item, createView(app, item, gridX, gridY));
   });
 
-  return { root, views, selectedItem, itemFocused: root };
+  return app;
 };
 
 export const focusOnItemSelected = (app: AppState) => {
@@ -69,21 +76,25 @@ const focusOnItem = (app: AppState, item: Item | undefined) => {
   if (item) {
     app.itemFocused = item;
     app.views.clear();
-    layoutRoot(app.itemFocused, (item, gridX, gridY) => {
-      app.views.set(
-        item,
-        createView(item, gridX, gridY, item === app.selectedItem)
-      );
+    layout(app, app.itemFocused, (item, gridX, gridY) => {
+      app.views.set(item, createView(app, item, gridX, gridY));
     });
   }
 };
 
 type LayoutCallback = (item: Item, gridX: number, gridY: number) => void;
 
-export const layoutRoot = (root: Item, cb: LayoutCallback) =>
-  traverseItems(root.children, 0, 0, cb);
+const layout = (app: AppState, item: Item, cb: LayoutCallback) =>
+  traverseItems(
+    app,
+    isRoot(item) ? item.children : [item],
+    isRoot(item) ? 0 : -1,
+    0,
+    cb
+  );
 
 const traverseItems = (
+  app: AppState,
   items: Item[],
   gridX: number,
   gridY: number,
@@ -96,14 +107,14 @@ const traverseItems = (
     return (
       totalGridHeight +
       1 +
-      (hasVisibleChildren(child)
-        ? traverseItems(child.children, gridX + 1, currentGridY + 1, fn)
+      (hasVisibleChildren(app, child)
+        ? traverseItems(app, child.children, gridX + 1, currentGridY + 1, fn)
         : 0)
     );
   }, 0);
 
-const hasVisibleChildren = (item: Item) =>
-  item.isOpen && item.children.length > 0;
+const hasVisibleChildren = (app: AppState, item: Item) =>
+  (item.isOpen && item.children.length > 0) || app.itemFocused == item;
 
 //Actions
 
@@ -115,17 +126,14 @@ export const moveUp = (app: AppState) =>
 
 export const moveLeft = (app: AppState) => {
   if (app.selectedItem) {
-    if (app.selectedItem.isOpen) {
+    if (app.selectedItem.isOpen && app.selectedItem !== app.itemFocused) {
       app.selectedItem.isOpen = false;
       forEachChild(app.selectedItem, (item) => {
         app.views.delete(item);
       });
-      layoutRoot(app.itemFocused, (item, gridX, gridY) => {
+      layout(app, app.itemFocused, (item, gridX, gridY) => {
         const view = app.views.get(item);
-        if (view) {
-          view.gridX = gridX;
-          view.gridY = gridY;
-        }
+        if (view) updateView(app, view, gridX, gridY);
       });
     } else if (app.selectedItem.parent && !isRoot(app.selectedItem.parent))
       changeSelection(app, app.selectedItem.parent);
@@ -138,17 +146,10 @@ export const moveRight = (app: AppState) => {
       changeSelection(app, app.selectedItem.children[0]);
     } else if (!app.selectedItem.isOpen) {
       app.selectedItem.isOpen = true;
-      layoutRoot(app.itemFocused, (item, gridX, gridY) => {
+      layout(app, app.itemFocused, (item, gridX, gridY) => {
         const view = app.views.get(item);
-        if (view) {
-          view.gridX = gridX;
-          view.gridY = gridY;
-        } else {
-          app.views.set(
-            item,
-            createView(item, gridX, gridY, item === app.selectedItem)
-          );
-        }
+        if (view) updateView(app, view, gridX, gridY);
+        else app.views.set(item, createView(app, item, gridX, gridY));
       });
     }
   }
@@ -165,18 +166,44 @@ export const changeSelection = (app: AppState, item: Item | undefined) => {
 };
 
 const createView = (
+  app: AppState,
   item: Item,
   gridX: number,
-  gridY: number,
-  isSelected: boolean
+  gridY: number
 ): ItemView => {
-  const view: ItemView = { gridX, gridY, item, isSelected };
+  const x = calcXCoordiante(gridX);
+  const y = calcYCoordiante(app, item, gridY);
+  const isSelected = app.selectedItem == item;
 
+  const view: ItemView = { gridX, gridY, x, y, item, isSelected };
   item.view = view;
   return view;
 };
-// MOVEMENT
 
+const updateView = (
+  app: AppState,
+  view: ItemView,
+  gridX: number,
+  gridY: number
+): ItemView => {
+  view.gridX = gridX;
+  view.gridY = gridY;
+  view.x = calcXCoordiante(gridX);
+  view.y = calcYCoordiante(app, view.item, gridY);
+
+  return view;
+};
+
+const calcXCoordiante = (gridX: number): number => gridX * spacings.gridSize;
+
+const calcYCoordiante = (app: AppState, item: Item, gridY: number): number => {
+  const isFocused = app.itemFocused == item;
+  return (
+    gridY * spacings.gridSize + (isFocused ? spacings.titleOffsetFromTop : 0)
+  );
+};
+
+// MOVEMENT
 const getItemBelow = (app: AppState, item: Item): Item | undefined =>
   (item.isOpen && item.children.length > 0) || app.itemFocused == item
     ? item.children[0]
