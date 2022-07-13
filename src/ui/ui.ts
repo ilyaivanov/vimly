@@ -10,6 +10,7 @@ export const spacings = {
 
   lineWidth: 2,
   offsetFromTop: 60,
+  focusedTitleOffset: 40,
 
   viewportMaxWidth: 800,
 

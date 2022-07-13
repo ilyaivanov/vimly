@@ -1,8 +1,9 @@
 import { AppState, hasChildren, isRoot, ItemView } from "../core/app";
+import { itemEdited } from "./input";
 import { spacings, theme } from "./ui";
 
 // Canvas Infra
-let xOffset = 0;
+export let xOffset = 0;
 
 let onResizeCb: () => void;
 
@@ -98,7 +99,7 @@ export const drawApp = (app: AppState) => {
       spacings.titleFontSize,
       textColor
     );
-    window.ctx.translate(0, 40);
+    window.ctx.translate(0, spacings.focusedTitleOffset);
   }
 
   for (const item of app.views.keys()) {
@@ -138,13 +139,15 @@ const viewItem = (
 
   outlineCircle(x, y, spacings.circleRadius, spacings.circleLineWidth, color);
 
-  fillTextAtMiddle(
-    view.item.title,
-    x + textXOffset,
-    y + textYOffset,
-    isFirstLevel ? spacings.firstLevelfontSize : spacings.fontSize,
-    textColor
-  );
+  if (view.item !== itemEdited) {
+    fillTextAtMiddle(
+      view.item.title,
+      x + textXOffset,
+      y + textYOffset,
+      isFirstLevel ? spacings.firstLevelfontSize : spacings.fontSize,
+      textColor
+    );
+  }
 
   window.ctx.save();
   if (parentView) lineBetween(view, parentView);
