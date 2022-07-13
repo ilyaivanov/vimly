@@ -1,20 +1,26 @@
-import { createApp, moveDown, moveLeft, moveRight, moveUp } from "./core/app";
+import * as actions from "./core/app";
 import { drawApp, initCanvas, setOnResizeCb } from "./ui/draw";
 import data from "./data/viztly.json";
 
 initCanvas();
 
-const app = createApp(data.children as any);
+const app = actions.createApp(data.children as any);
 
 document.addEventListener("keydown", (event) => {
   if (event.code === "ArrowDown") {
-    moveDown(app);
+    actions.moveDown(app);
   } else if (event.code === "ArrowUp") {
-    moveUp(app);
+    actions.moveUp(app);
   } else if (event.code === "ArrowLeft") {
-    moveLeft(app);
+    if (event.altKey) actions.focusOnParentOfFocused(app);
+    else actions.moveLeft(app);
+
+    event.preventDefault();
   } else if (event.code === "ArrowRight") {
-    moveRight(app);
+    if (event.altKey) actions.focusOnItemSelected(app);
+    else actions.moveRight(app);
+
+    event.preventDefault();
   }
   drawApp(app);
 });

@@ -1,12 +1,14 @@
 const circleRadius = 3.5;
 export const spacings = {
-  fontSize: 18,
+  titleFontSize: 28,
+  firstLevelfontSize: 20,
+  fontSize: 16,
   gridSize: 28,
 
   circleRadius,
   circleLineWidth: 1.5,
 
-  lineWidth: 3,
+  lineWidth: 2,
   offsetFromTop: 60,
 
   viewportMaxWidth: 800,
@@ -17,17 +19,13 @@ export const spacings = {
   fontFace: "Segoe UI",
 };
 
-export const colors = {
-  line: "red",
-  circle: "blue",
-  text: "green",
-};
-
 const themes = {
   dark: {
     bg: "#1E1E1E",
-    line: "#3C413D",
-    font: "#FFFFFF",
+    line: "#373B42",
+    titleFont: "#FFFFFF", //"#FFFFFF",
+    font: "#CBCBCB", //"#FFFFFF",
+    firstLevelFont: "#FFFFFF", //"#FFFFFF",
     selected: "#B1E847",
     gridPoint: "#3C413D",
     filledCircle: "#D1D2D3",

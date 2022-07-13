@@ -18,6 +18,7 @@ export type AppState = {
   root: Item;
   views: Map<Item, ItemView>;
   selectedItem: Item | undefined;
+  itemFocused: Item;
 };
 
 export const mapPartialItem = (item: Partial<Item> | string): Item => {
@@ -50,7 +51,31 @@ export const createApp = (items: Item[]): AppState => {
     views.set(item, createView(item, gridX, gridY, item === selectedItem));
   });
 
-  return { root, views, selectedItem };
+  return { root, views, selectedItem, itemFocused: root };
+};
+
+export const focusOnItemSelected = (app: AppState) => {
+  focusOnItem(app, app.selectedItem);
+};
+
+export const focusOnParentOfFocused = (app: AppState) => {
+  const { itemFocused } = app;
+  if (itemFocused && !isRoot(itemFocused) && itemFocused.parent) {
+    focusOnItem(app, app.itemFocused?.parent);
+  }
+};
+
+const focusOnItem = (app: AppState, item: Item | undefined) => {
+  if (item) {
+    app.itemFocused = item;
+    app.views.clear();
+    layoutRoot(app.itemFocused, (item, gridX, gridY) => {
+      app.views.set(
+        item,
+        createView(item, gridX, gridY, item === app.selectedItem)
+      );
+    });
+  }
 };
 
 type LayoutCallback = (item: Item, gridX: number, gridY: number) => void;
@@ -95,7 +120,7 @@ export const moveLeft = (app: AppState) => {
       forEachChild(app.selectedItem, (item) => {
         app.views.delete(item);
       });
-      layoutRoot(app.root, (item, gridX, gridY) => {
+      layoutRoot(app.itemFocused, (item, gridX, gridY) => {
         const view = app.views.get(item);
         if (view) {
           view.gridX = gridX;
@@ -113,7 +138,7 @@ export const moveRight = (app: AppState) => {
       changeSelection(app, app.selectedItem.children[0]);
     } else if (!app.selectedItem.isOpen) {
       app.selectedItem.isOpen = true;
-      layoutRoot(app.root, (item, gridX, gridY) => {
+      layoutRoot(app.itemFocused, (item, gridX, gridY) => {
         const view = app.views.get(item);
         if (view) {
           view.gridX = gridX;
@@ -206,7 +231,7 @@ const getLastNestedItem = (item: Item): Item => {
 };
 
 const isBoard = (item: Item | undefined): boolean => false; //item?.view === "board";
-const isRoot = (item: Item) => !item.parent;
+export const isRoot = (item: Item) => !item.parent;
 
 const isLast = (item: Item): boolean => !getFollowingSibling(item);
 
