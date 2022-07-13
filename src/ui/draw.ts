@@ -1,4 +1,4 @@
-import { AppState, hasChildren, ItemView } from "./app";
+import { AppState, hasChildren, ItemView } from "../core/app";
 import { spacings, theme } from "./ui";
 
 // Canvas Infra

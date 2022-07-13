@@ -1,5 +1,5 @@
-import { createApp, moveDown, moveLeft, moveRight, moveUp } from "./app";
-import { drawApp, initCanvas, setOnResizeCb } from "./draw";
+import { createApp, moveDown, moveLeft, moveRight, moveUp } from "./core/app";
+import { drawApp, initCanvas, setOnResizeCb } from "./ui/draw";
 import data from "./data/viztly.json";
 
 initCanvas();
