@@ -1,4 +1,4 @@
-import { spacings } from "../ui/ui";
+import { spacings, theme } from "../ui/ui";
 
 export type Item = {
   title: string;
@@ -13,10 +13,12 @@ export type ItemView = {
   gridX: number;
   gridY: number;
   item: Item;
-  isSelected: boolean;
 
   x: number;
   y: number;
+  fontSize: number;
+  textColor: string;
+  circleColor: string;
 };
 
 export type AppState = {
@@ -156,11 +158,14 @@ export const moveRight = (app: AppState) => {
 
 export const changeSelection = (app: AppState, item: Item | undefined) => {
   if (!item || !isOneOfTheParents(item, app.itemFocused)) return;
-  const currentView = app.selectedItem?.view;
-  if (currentView) currentView.isSelected = false;
+  const currentItem = app.selectedItem;
+  app.selectedItem = item;
   if (item.view) {
-    item.view.isSelected = true;
-    app.selectedItem = item;
+    updateView(app, item.view, item.view.gridX, item.view.gridY);
+  }
+  if (currentItem?.view) {
+    const { view } = currentItem;
+    updateView(app, view, view.gridX, view.gridY);
   }
 };
 
@@ -174,7 +179,16 @@ const createView = (
   const y = calcYCoordiante(app, item, gridY);
   const isSelected = app.selectedItem == item;
 
-  const view: ItemView = { gridX, gridY, x, y, item, isSelected };
+  const view: ItemView = {
+    gridX,
+    gridY,
+    x,
+    y,
+    item,
+    fontSize: getFontSize(gridX),
+    circleColor: getCircleColor(isSelected),
+    textColor: getTextColor(isSelected, gridX),
+  };
   item.view = view;
   return view;
 };
@@ -190,8 +204,29 @@ const updateView = (
   view.x = calcXCoordiante(gridX);
   view.y = calcYCoordiante(app, view.item, gridY);
 
+  const isSelected = app.selectedItem == view.item;
+  view.fontSize = getFontSize(gridX);
+  view.circleColor = getCircleColor(isSelected);
+  view.textColor = getTextColor(isSelected, gridX);
   return view;
 };
+
+const getFontSize = (gridX: number) =>
+  gridX == -1
+    ? spacings.titleFontSize
+    : gridX == 0
+    ? spacings.firstLevelfontSize
+    : spacings.fontSize;
+
+const getTextColor = (isSelected: boolean, gridX: number) =>
+  isSelected
+    ? theme.selected
+    : gridX == -1 || gridX == 0
+    ? theme.firstLevelFont
+    : theme.font;
+
+const getCircleColor = (isSelected: boolean) =>
+  isSelected ? theme.selected : theme.filledCircle;
 
 const calcXCoordiante = (gridX: number): number => gridX * spacings.gridSize;
 

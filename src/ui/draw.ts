@@ -29,40 +29,27 @@ const viewItem = (
 ) => {
   const x = view.x;
   const y = view.y;
-  const color = view.isSelected ? theme.selected : theme.filledCircle;
-
-  const isFirstLevel = view.item.parent == app.itemFocused;
 
   const isItemFocused = view.item == app.itemFocused;
-
-  const textColor = view.isSelected
-    ? theme.selected
-    : isFirstLevel || isItemFocused
-    ? theme.firstLevelFont
-    : theme.font;
 
   const textYOffset = 1;
   const textXOffset = spacings.textFromCircleDistance;
 
+  const { circleRadius, circleLineWidth } = spacings;
   if (!isItemFocused) {
-    if (hasChildren(view.item)) fillCircle(x, y, spacings.circleRadius, color);
+    if (hasChildren(view.item))
+      fillCircle(x, y, circleRadius, view.circleColor);
 
-    outlineCircle(x, y, spacings.circleRadius, spacings.circleLineWidth, color);
+    outlineCircle(x, y, circleRadius, circleLineWidth, view.circleColor);
   }
 
   if (view.item !== itemEdited) {
-    const fontSize = isItemFocused
-      ? spacings.titleFontSize
-      : isFirstLevel
-      ? spacings.firstLevelfontSize
-      : spacings.fontSize;
-
     fillTextAtMiddle(
       view.item.title,
       x + textXOffset,
       y + textYOffset,
-      fontSize,
-      textColor
+      view.fontSize,
+      view.textColor
     );
   }
 

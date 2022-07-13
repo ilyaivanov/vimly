@@ -275,7 +275,7 @@ const expectItemToBeSelected = (app: AppState, item: string) => {
   if (!view) throw new Error(`Item ${item} not found in views`);
 
   expect(app.selectedItem!.title).toBe(item);
-  expect(view.isSelected).toBe(true);
+  expect(app.selectedItem).toBe(view.item);
 };
 
 const findItemByName = (app: AppState, title: string): Item => {
