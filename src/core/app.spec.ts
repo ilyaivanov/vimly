@@ -70,7 +70,7 @@ it("having three nested items when last item in branch in selected moving down s
     item("Item 2"),
   ]);
 
-  changeSelection(app, findItemByName(app, "Item 1.1.1"));
+  selectItem(app, "Item 1.1.1");
   expectItemToBeSelected(app, "Item 1.1.1");
 
   moveDown(app);
@@ -80,7 +80,7 @@ it("having three nested items when last item in branch in selected moving down s
 it("when last item is selected moving down does nothing", () => {
   const app = createApp([item("Item 1"), item("Item 2")]);
 
-  changeSelection(app, findItemByName(app, "Item 2"));
+  selectItem(app, "Item 2");
   moveDown(app);
   expectItemToBeSelected(app, "Item 2");
 });
@@ -89,7 +89,7 @@ it("when last item is selected moving down does nothing", () => {
 it("having two items pressing up selectes item above", () => {
   const app = createApp([item("Item 1"), item("Item 2")]);
 
-  changeSelection(app, findItemByName(app, "Item 2"));
+  selectItem(app, "Item 2");
   expectItemToBeSelected(app, "Item 2");
 
   moveUp(app);
@@ -104,7 +104,7 @@ it("having three nested items when last item in branch in selected moving down s
     item("Item 2"),
   ]);
 
-  changeSelection(app, findItemByName(app, "Item 2"));
+  selectItem(app, "Item 2");
   expectItemToBeSelected(app, "Item 2");
 
   moveUp(app);

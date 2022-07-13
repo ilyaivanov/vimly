@@ -48,15 +48,14 @@ export const mapPartialItem = (item: Partial<Item> | string): Item => {
 
 export const createApp = (items: Item[]): AppState => {
   const root: Item = mapPartialItem({ title: "Root", children: items });
-  const views: Map<Item, ItemView> = new Map();
 
   const selectedItem = root.children[0];
 
-  const app = { root, views, selectedItem, itemFocused: root };
+  const app = { root, views: new Map(), selectedItem, itemFocused: root };
 
-  layout(app, root, (item, gridX, gridY) => {
-    app.views.set(item, createView(app, item, gridX, gridY));
-  });
+  layout(app, root, (item, gridX, gridY) =>
+    app.views.set(item, createView(app, item, gridX, gridY))
+  );
 
   return app;
 };
@@ -282,10 +281,6 @@ const isOneOfTheParents = (item: Item, parent: Item) => {
 };
 
 export const hasChildren = (item: Item) => item.children.length > 0;
-
-export const isChildrenVisible = (app: AppState, item: Item) => {
-  return item.isOpen && item.children.length > 0;
-};
 
 // canditates to extract
 
