@@ -2,6 +2,7 @@ import {
   AppState,
   changeSelection,
   createApp,
+  focusOnItemSelected,
   forEachChild,
   Item,
   mapPartialItem,
@@ -86,6 +87,39 @@ it("when last item is selected moving down does nothing", () => {
   changeSelection(app, findItemByName(app, "Item 2"));
   moveDown(app);
   expectItemToBeSelected(app, "Item 2");
+});
+
+it("when focusing on closed item goind down select first child", () => {
+  const app = createApp([
+    mapPartialItem({
+      title: "Item 1",
+      isOpen: false,
+      children: [mapPartialItem("Item 1.1")],
+    }),
+    mapPartialItem("Item 2"),
+  ]);
+
+  changeSelection(app, findItemByName(app, "Item 1"));
+  focusOnItemSelected(app);
+  moveDown(app);
+  expectItemToBeSelected(app, "Item 1.1");
+});
+
+it("when focusing on last item in focus content going down does nothing", () => {
+  const app = createApp([
+    mapPartialItem({
+      title: "Item 1",
+      children: [mapPartialItem("Item 1.1")],
+    }),
+    mapPartialItem("Item 2"),
+  ]);
+
+  changeSelection(app, findItemByName(app, "Item 1"));
+  focusOnItemSelected(app);
+  moveDown(app);
+  expectItemToBeSelected(app, "Item 1.1");
+  moveDown(app);
+  expectItemToBeSelected(app, "Item 1.1");
 });
 
 // Moving up

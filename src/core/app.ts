@@ -108,7 +108,7 @@ const hasVisibleChildren = (item: Item) =>
 //Actions
 
 export const moveDown = (app: AppState) =>
-  app.selectedItem && changeSelection(app, getItemBelow(app.selectedItem));
+  app.selectedItem && changeSelection(app, getItemBelow(app, app.selectedItem));
 
 export const moveUp = (app: AppState) =>
   app.selectedItem && changeSelection(app, getItemAbove(app.selectedItem));
@@ -155,7 +155,7 @@ export const moveRight = (app: AppState) => {
 };
 
 export const changeSelection = (app: AppState, item: Item | undefined) => {
-  if (!item) return;
+  if (!item || !isOneOfTheParents(item, app.itemFocused)) return;
   const currentView = app.selectedItem?.view;
   if (currentView) currentView.isSelected = false;
   if (item.view) {
@@ -177,8 +177,8 @@ const createView = (
 };
 // MOVEMENT
 
-const getItemBelow = (item: Item): Item | undefined =>
-  item.isOpen && item.children.length > 0
+const getItemBelow = (app: AppState, item: Item): Item | undefined =>
+  (item.isOpen && item.children.length > 0) || app.itemFocused == item
     ? item.children[0]
     : getFollowingItem(item);
 
@@ -245,7 +245,20 @@ export const forEachChild = (item: Item, cb: A2<Item, Item>) => {
   traverse(item.children);
 };
 
+const isOneOfTheParents = (item: Item, parent: Item) => {
+  let current: Item | undefined = item;
+  while (current) {
+    if (current === parent) return true;
+    current = current.parent;
+  }
+  return false;
+};
+
 export const hasChildren = (item: Item) => item.children.length > 0;
+
+export const isChildrenVisible = (app: AppState, item: Item) => {
+  return item.isOpen && item.children.length > 0;
+};
 
 // canditates to extract
 
