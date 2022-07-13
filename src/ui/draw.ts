@@ -151,13 +151,11 @@ const viewItem = (
 const lineBetween = (view1: ItemView, view2: ItemView) => {
   const { circleRadius, lineToCircleDistance } = spacings;
 
-  const x1 =
-    view1.gridX * spacings.gridSize - circleRadius - lineToCircleDistance;
-  const y1 = view1.gridY * spacings.gridSize;
+  const x1 = view1.x - circleRadius - lineToCircleDistance;
+  const y1 = view1.y;
 
-  const x2 = view2.gridX * spacings.gridSize;
-  const y2 =
-    view2.gridY * spacings.gridSize + circleRadius + lineToCircleDistance;
+  const x2 = view2.x;
+  const y2 = view2.y + circleRadius + lineToCircleDistance;
 
   const ctx = window.ctx;
   ctx.lineWidth = spacings.lineWidth;
