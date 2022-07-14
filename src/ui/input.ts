@@ -12,13 +12,19 @@ export const showInput = (app: AppState) => {
 
     if (view) {
       const x = view.x + xOffset + spacings.textFromCircleDistance - 2;
-      const y = view.y + spacings.offsetFromTop - 0.8 * spacings.fontSize;
+
+      window.ctx.font = `400 ${view.fontSize}px ${spacings.fontFace}, sans-serif`;
+      let height = window.ctx.measureText(
+        view.item.title
+      ).fontBoundingBoxAscent;
+
+      const y = view.y + spacings.offsetFromTop - height;
 
       Object.assign(input.style, {
         top: y + "px",
         left: x + "px",
         color: theme.selected,
-        fontSize: spacings.fontSize + "px",
+        fontSize: view.fontSize + "px",
         fontFamily: spacings.fontFace,
         overflow: "hidden",
         width: "600px",
@@ -38,7 +44,9 @@ export const showInput = (app: AppState) => {
         itemEdited = undefined;
       };
 
+      //TODO: on blur render is not being called, thus title remains empty
       input.addEventListener("blur", finishEdit);
+
       input.addEventListener("keydown", (e) => {
         if (e.code === "Enter" || e.code === "Escape") {
           input.removeEventListener("blur", finishEdit);
