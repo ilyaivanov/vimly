@@ -1,13 +1,13 @@
 import * as actions from "./core/app";
 import { drawApp } from "./ui/draw";
-import data from "./data/viztly.json";
 import { itemEdited, showInput } from "./ui/input";
-import { theme } from "./ui/ui";
 import { initCanvas, setOnResizeCb } from "./ui/canvas";
 
 initCanvas();
 
-const app = actions.createApp(data.children as any);
+const { item } = actions;
+
+const app = actions.createApp([item("Viztly")]);
 
 document.addEventListener("keydown", (event) => {
   if (itemEdited) return;

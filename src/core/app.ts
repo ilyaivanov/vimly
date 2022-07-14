@@ -28,6 +28,12 @@ export type AppState = {
   itemFocused: Item;
 };
 
+export const item = (title: string, children: Item[] = []): Item =>
+  mapPartialItem({ title, children });
+
+export const closedItem = (title: string, children: Item[] = []): Item =>
+  mapPartialItem({ title, children, isOpen: false });
+
 export const mapPartialItem = (item: Partial<Item> | string): Item => {
   if (typeof item === "string")
     return {

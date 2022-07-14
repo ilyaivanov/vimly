@@ -6,6 +6,8 @@ import {
   focusOnItemSelected,
   focusOnParentOfFocused,
   forEachChild,
+  item,
+  closedItem,
   Item,
   ItemView,
   mapPartialItem,
@@ -294,9 +296,3 @@ const getView = (app: AppState, item: string): ItemView => {
   if (!view) throw new Error(`Item ${item} not found in views`);
   return view;
 };
-
-const item = (title: string, children: Item[] = []): Item =>
-  mapPartialItem({ title, children });
-
-const closedItem = (title: string, children: Item[] = []): Item =>
-  mapPartialItem({ title, children, isOpen: false });
