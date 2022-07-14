@@ -1,3 +1,5 @@
+import { spacings, theme } from "../ui/ui";
+
 export type Item = {
   title: string;
   isOpen: boolean;
@@ -11,7 +13,12 @@ export type ItemView = {
   gridX: number;
   gridY: number;
   item: Item;
-  isSelected: boolean;
+
+  x: number;
+  y: number;
+  fontSize: number;
+  textColor: string;
+  circleColor: string;
 };
 
 export type AppState = {
@@ -43,15 +50,16 @@ export const mapPartialItem = (item: Partial<Item> | string): Item => {
 
 export const createApp = (items: Item[]): AppState => {
   const root: Item = mapPartialItem({ title: "Root", children: items });
-  const views: Map<Item, ItemView> = new Map();
 
   const selectedItem = root.children[0];
 
-  layoutRoot(root, (item, gridX, gridY) => {
-    views.set(item, createView(item, gridX, gridY, item === selectedItem));
-  });
+  const app = { root, views: new Map(), selectedItem, itemFocused: root };
 
-  return { root, views, selectedItem, itemFocused: root };
+  layout(app, root, (item, gridX, gridY) =>
+    app.views.set(item, createView(app, item, gridX, gridY))
+  );
+
+  return app;
 };
 
 export const focusOnItemSelected = (app: AppState) => {
@@ -69,21 +77,25 @@ const focusOnItem = (app: AppState, item: Item | undefined) => {
   if (item) {
     app.itemFocused = item;
     app.views.clear();
-    layoutRoot(app.itemFocused, (item, gridX, gridY) => {
-      app.views.set(
-        item,
-        createView(item, gridX, gridY, item === app.selectedItem)
-      );
+    layout(app, app.itemFocused, (item, gridX, gridY) => {
+      app.views.set(item, createView(app, item, gridX, gridY));
     });
   }
 };
 
 type LayoutCallback = (item: Item, gridX: number, gridY: number) => void;
 
-export const layoutRoot = (root: Item, cb: LayoutCallback) =>
-  traverseItems(root.children, 0, 0, cb);
+const layout = (app: AppState, item: Item, cb: LayoutCallback) =>
+  traverseItems(
+    app,
+    isRoot(item) ? item.children : [item],
+    isRoot(item) ? 0 : -1,
+    0,
+    cb
+  );
 
 const traverseItems = (
+  app: AppState,
   items: Item[],
   gridX: number,
   gridY: number,
@@ -96,14 +108,14 @@ const traverseItems = (
     return (
       totalGridHeight +
       1 +
-      (hasVisibleChildren(child)
-        ? traverseItems(child.children, gridX + 1, currentGridY + 1, fn)
+      (hasVisibleChildren(app, child)
+        ? traverseItems(app, child.children, gridX + 1, currentGridY + 1, fn)
         : 0)
     );
   }, 0);
 
-const hasVisibleChildren = (item: Item) =>
-  item.isOpen && item.children.length > 0;
+const hasVisibleChildren = (app: AppState, item: Item) =>
+  (item.isOpen && item.children.length > 0) || app.itemFocused == item;
 
 //Actions
 
@@ -115,17 +127,14 @@ export const moveUp = (app: AppState) =>
 
 export const moveLeft = (app: AppState) => {
   if (app.selectedItem) {
-    if (app.selectedItem.isOpen) {
+    if (app.selectedItem.isOpen && app.selectedItem !== app.itemFocused) {
       app.selectedItem.isOpen = false;
       forEachChild(app.selectedItem, (item) => {
         app.views.delete(item);
       });
-      layoutRoot(app.itemFocused, (item, gridX, gridY) => {
+      layout(app, app.itemFocused, (item, gridX, gridY) => {
         const view = app.views.get(item);
-        if (view) {
-          view.gridX = gridX;
-          view.gridY = gridY;
-        }
+        if (view) updateView(app, view, gridX, gridY);
       });
     } else if (app.selectedItem.parent && !isRoot(app.selectedItem.parent))
       changeSelection(app, app.selectedItem.parent);
@@ -138,17 +147,10 @@ export const moveRight = (app: AppState) => {
       changeSelection(app, app.selectedItem.children[0]);
     } else if (!app.selectedItem.isOpen) {
       app.selectedItem.isOpen = true;
-      layoutRoot(app.itemFocused, (item, gridX, gridY) => {
+      layout(app, app.itemFocused, (item, gridX, gridY) => {
         const view = app.views.get(item);
-        if (view) {
-          view.gridX = gridX;
-          view.gridY = gridY;
-        } else {
-          app.views.set(
-            item,
-            createView(item, gridX, gridY, item === app.selectedItem)
-          );
-        }
+        if (view) updateView(app, view, gridX, gridY);
+        else app.views.set(item, createView(app, item, gridX, gridY));
       });
     }
   }
@@ -156,27 +158,86 @@ export const moveRight = (app: AppState) => {
 
 export const changeSelection = (app: AppState, item: Item | undefined) => {
   if (!item || !isOneOfTheParents(item, app.itemFocused)) return;
-  const currentView = app.selectedItem?.view;
-  if (currentView) currentView.isSelected = false;
+  const currentItem = app.selectedItem;
+  app.selectedItem = item;
   if (item.view) {
-    item.view.isSelected = true;
-    app.selectedItem = item;
+    updateView(app, item.view, item.view.gridX, item.view.gridY);
+  }
+  if (currentItem?.view) {
+    const { view } = currentItem;
+    updateView(app, view, view.gridX, view.gridY);
   }
 };
 
 const createView = (
+  app: AppState,
   item: Item,
   gridX: number,
-  gridY: number,
-  isSelected: boolean
+  gridY: number
 ): ItemView => {
-  const view: ItemView = { gridX, gridY, item, isSelected };
+  const x = calcXCoordiante(gridX);
+  const y = calcYCoordiante(app, item, gridY);
+  const isSelected = app.selectedItem == item;
 
+  const view: ItemView = {
+    gridX,
+    gridY,
+    x,
+    y,
+    item,
+    fontSize: getFontSize(gridX),
+    circleColor: getCircleColor(isSelected),
+    textColor: getTextColor(isSelected, gridX),
+  };
   item.view = view;
   return view;
 };
-// MOVEMENT
 
+const updateView = (
+  app: AppState,
+  view: ItemView,
+  gridX: number,
+  gridY: number
+): ItemView => {
+  view.gridX = gridX;
+  view.gridY = gridY;
+  view.x = calcXCoordiante(gridX);
+  view.y = calcYCoordiante(app, view.item, gridY);
+
+  const isSelected = app.selectedItem == view.item;
+  view.fontSize = getFontSize(gridX);
+  view.circleColor = getCircleColor(isSelected);
+  view.textColor = getTextColor(isSelected, gridX);
+  return view;
+};
+
+const getFontSize = (gridX: number) =>
+  gridX == -1
+    ? spacings.titleFontSize
+    : gridX == 0
+    ? spacings.firstLevelfontSize
+    : spacings.fontSize;
+
+const getTextColor = (isSelected: boolean, gridX: number) =>
+  isSelected
+    ? theme.selected
+    : gridX == -1 || gridX == 0
+    ? theme.firstLevelFont
+    : theme.font;
+
+const getCircleColor = (isSelected: boolean) =>
+  isSelected ? theme.selected : theme.filledCircle;
+
+const calcXCoordiante = (gridX: number): number => gridX * spacings.gridSize;
+
+const calcYCoordiante = (app: AppState, item: Item, gridY: number): number => {
+  const isFocused = app.itemFocused == item;
+  return (
+    gridY * spacings.gridSize + (isFocused ? spacings.titleOffsetFromTop : 0)
+  );
+};
+
+// MOVEMENT
 const getItemBelow = (app: AppState, item: Item): Item | undefined =>
   (item.isOpen && item.children.length > 0) || app.itemFocused == item
     ? item.children[0]
@@ -255,10 +316,6 @@ const isOneOfTheParents = (item: Item, parent: Item) => {
 };
 
 export const hasChildren = (item: Item) => item.children.length > 0;
-
-export const isChildrenVisible = (app: AppState, item: Item) => {
-  return item.isOpen && item.children.length > 0;
-};
 
 // canditates to extract
 

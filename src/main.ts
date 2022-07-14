@@ -1,12 +1,17 @@
 import * as actions from "./core/app";
-import { drawApp, initCanvas, setOnResizeCb } from "./ui/draw";
+import { drawApp } from "./ui/draw";
 import data from "./data/viztly.json";
+import { itemEdited, showInput } from "./ui/input";
+import { theme } from "./ui/ui";
+import { initCanvas, setOnResizeCb } from "./ui/canvas";
 
 initCanvas();
 
 const app = actions.createApp(data.children as any);
 
 document.addEventListener("keydown", (event) => {
+  if (itemEdited) return;
+
   if (event.code === "ArrowDown") {
     actions.moveDown(app);
   } else if (event.code === "ArrowUp") {
@@ -21,8 +26,13 @@ document.addEventListener("keydown", (event) => {
     else actions.moveRight(app);
 
     event.preventDefault();
+  } else if (event.code === "KeyE") {
+    showInput(app);
+    event.preventDefault();
   }
   drawApp(app);
 });
+
 drawApp(app);
+
 setOnResizeCb(() => drawApp(app));

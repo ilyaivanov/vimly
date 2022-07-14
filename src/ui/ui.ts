@@ -1,6 +1,9 @@
 const circleRadius = 3.5;
 export const spacings = {
   titleFontSize: 28,
+
+  titleOffsetFromTop: -10,
+
   firstLevelfontSize: 20,
   fontSize: 16,
   gridSize: 28,
@@ -10,6 +13,7 @@ export const spacings = {
 
   lineWidth: 2,
   offsetFromTop: 60,
+  focusedTitleOffset: 40,
 
   viewportMaxWidth: 800,
 
