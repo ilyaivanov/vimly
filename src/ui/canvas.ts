@@ -30,7 +30,11 @@ export const initCanvas = () => {
   assignDimensions();
 
   document.body.style.backgroundColor = theme.bg;
-  window.ctx = canvas.getContext("2d")!;
+
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Could not get 2d context from canvas");
+
+  window.ctx = context;
 };
 
 // Canvas Drawings

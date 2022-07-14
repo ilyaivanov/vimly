@@ -118,9 +118,9 @@ it("having two nested items pressing left closes item", () => {
   const app = createApp([item("Item 1", [item("Item 1.1")])]);
 
   const item1 = findItemByName(app, "Item 1");
-  expect(app.views.get(item1)!.item.isOpen).toBe(true);
+  expect(item1.isOpen).toBe(true);
   moveLeft(app);
-  expect(app.views.get(item1)!.item.isOpen).toBe(false);
+  expect(item1.isOpen).toBe(false);
 });
 
 it("when closing an item position of items below are updated", () => {
@@ -143,7 +143,7 @@ it("when opening an item position of items below are updated", () => {
   moveRight(app);
   expect(app.views.get(item2)?.gridY).toBe(2);
 
-  const view11 = app.views.get(findItemByName(app, "Item 1.1"))!;
+  const view11 = getView(app, "Item 1.1");
   expect(view11.gridX).toBe(1);
   expect(view11.gridY).toBe(1);
 });
@@ -270,14 +270,12 @@ const expectItemToHaveCoordinates = (
   }
 };
 
-const expectItemToBeSelected = (app: AppState, item: string) => {
-  const view = Array.from(app.views.values()).find(
-    (v) => v.item.title === item
-  );
-  if (!view) throw new Error(`Item ${item} not found in views`);
-
-  expect(app.selectedItem!.title).toBe(item);
-  expect(app.selectedItem).toBe(view.item);
+const expectItemToBeSelected = (app: AppState, itemTitle: string) => {
+  if (!app.selectedItem)
+    throw new Error(
+      `No item is selected. Expected ${itemTitle}, but was ${app.selectedItem}`
+    );
+  expect(app.selectedItem.title).toBe(itemTitle);
 };
 
 const findItemByName = (app: AppState, title: string): Item => {

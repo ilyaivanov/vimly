@@ -14,7 +14,7 @@ export const showInput = (app: AppState) => {
       const x = view.x + xOffset + spacings.textFromCircleDistance - 2;
 
       setFont(view.fontSize);
-      let height = window.ctx.measureText(
+      const height = window.ctx.measureText(
         view.item.title
       ).fontBoundingBoxAscent;
 

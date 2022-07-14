@@ -251,10 +251,10 @@ const getItemBelow = (app: AppState, item: Item): Item | undefined =>
 
 const getFollowingItem = (item: Item): Item | undefined => {
   const followingItem = getFollowingSibling(item);
-  if (followingItem && !isBoard(item.parent)) return followingItem;
+  if (followingItem) return followingItem;
   else {
     let parent = item.parent;
-    while (parent && (isLast(parent) || isBoard(parent.parent))) {
+    while (parent && isLast(parent)) {
       parent = parent.parent;
     }
     if (parent) return getFollowingSibling(parent);
@@ -278,12 +278,10 @@ const getRelativeSibling = (
 const getItemAbove = (item: Item): Item | undefined => {
   const parent = item.parent;
   if (parent) {
-    if (isBoard(parent)) return parent;
-
     const index = parent.children.indexOf(item);
     if (index > 0) {
       const previousItem = parent.children[index - 1];
-      if (isBoard(previousItem) && previousItem.isOpen)
+      if (previousItem.isOpen)
         return getLastNestedItem(previousItem.children[0]);
       return getLastNestedItem(previousItem);
     } else if (!isRoot(parent)) return parent;
@@ -297,7 +295,6 @@ const getLastNestedItem = (item: Item): Item => {
   return item;
 };
 
-const isBoard = (item: Item | undefined): boolean => false; //item?.view === "board";
 export const isRoot = (item: Item) => !item.parent;
 
 const isLast = (item: Item): boolean => !getFollowingSibling(item);
@@ -322,15 +319,3 @@ const isOneOfTheParents = (item: Item, parent: Item) => {
 };
 
 export const hasChildren = (item: Item) => item.children.length > 0;
-
-// canditates to extract
-
-type A1<T1> = (a: T1) => void;
-type A2<T1, T2> = (a: T1, b: T2) => void;
-type A3<T1, T2, T3> = (a: T1, b: T2, c: T3) => void;
-
-type F1<T1> = () => T1;
-type F2<T1, T2> = (a: T1) => T2;
-type F3<T1, T2, T3> = (a: T1, b: T2) => T3;
-
-type Predicate<T> = F2<T, boolean>;
