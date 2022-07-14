@@ -1,5 +1,5 @@
 import { AppState, Item } from "../core/app";
-import { xOffset } from "./canvas";
+import { setFont, xOffset } from "./canvas";
 import { spacings, theme } from "./ui";
 
 export let itemEdited: Item | undefined = undefined;
@@ -13,7 +13,7 @@ export const showInput = (app: AppState) => {
     if (view) {
       const x = view.x + xOffset + spacings.textFromCircleDistance - 2;
 
-      window.ctx.font = `400 ${view.fontSize}px ${spacings.fontFace}, sans-serif`;
+      setFont(view.fontSize);
       let height = window.ctx.measureText(
         view.item.title
       ).fontBoundingBoxAscent;

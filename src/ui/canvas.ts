@@ -64,8 +64,12 @@ export const fillTextAtMiddle = (
 ) => {
   window.ctx.fillStyle = color;
   window.ctx.textBaseline = "middle";
-  window.ctx.font = `400 ${fontSize}px ${spacings.fontFace}, sans-serif`;
+  setFont(fontSize);
   window.ctx.fillText(text, x, y);
+};
+
+export const setFont = (fontSize: number) => {
+  window.ctx.font = `400 ${fontSize}px ${spacings.fontFace}, sans-serif`;
 };
 
 declare global {

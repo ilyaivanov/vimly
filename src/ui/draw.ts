@@ -29,33 +29,27 @@ const viewItem = (
 ) => {
   const x = view.x;
   const y = view.y;
+  const { item } = view;
 
-  const isItemFocused = view.item == app.itemFocused;
-
-  const textYOffset = 1;
-  const textXOffset = spacings.textFromCircleDistance;
+  const isItemFocused = item == app.itemFocused;
 
   const { circleRadius, circleLineWidth } = spacings;
   if (!isItemFocused) {
-    if (hasChildren(view.item))
-      fillCircle(x, y, circleRadius, view.circleColor);
+    if (hasChildren(item)) fillCircle(x, y, circleRadius, view.circleColor);
 
     outlineCircle(x, y, circleRadius, circleLineWidth, view.circleColor);
   }
 
-  if (view.item !== itemEdited) {
-    fillTextAtMiddle(
-      view.item.title,
-      x + textXOffset,
-      y + textYOffset,
-      view.fontSize,
-      view.textColor
-    );
+  if (item !== itemEdited) {
+    const textYOffset = 1;
+    const textXOffset = spacings.textFromCircleDistance;
+
+    const textX = x + textXOffset;
+    const textY = y + textYOffset;
+    fillTextAtMiddle(item.title, textX, textY, view.fontSize, view.textColor);
   }
 
-  window.ctx.save();
   if (parentView && !isItemFocused) lineBetween(view, parentView);
-  window.ctx.restore();
 };
 
 const lineBetween = (view1: ItemView, view2: ItemView) => {
