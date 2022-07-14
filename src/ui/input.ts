@@ -3,7 +3,8 @@ import { setFont, xOffset } from "./canvas";
 import { spacings, theme } from "./ui";
 
 export let itemEdited: Item | undefined = undefined;
-export const showInput = (app: AppState) => {
+type CarretPosition = "start" | "end";
+export const showInput = (app: AppState, position: CarretPosition) => {
   if (app.selectedItem) {
     const input = document.createElement("input");
     input.type = "text";
@@ -35,7 +36,7 @@ export const showInput = (app: AppState) => {
       input.value = app.selectedItem.title;
       itemEdited = app.selectedItem;
       input.focus();
-      placeCarretAtStart(input);
+      placeCarretAtStart(input, position);
 
       const finishEdit = () => {
         if (app.selectedItem) app.selectedItem.title = input.value;
@@ -57,7 +58,12 @@ export const showInput = (app: AppState) => {
   }
 };
 
-const placeCarretAtStart = (input: HTMLInputElement) => {
-  input.scrollTo({ left: 0 });
-  input.setSelectionRange(0, 0);
+const placeCarretAtStart = (
+  input: HTMLInputElement,
+  position: CarretPosition
+) => {
+  if (position == "start") {
+    input.scrollTo({ left: 0 });
+    input.setSelectionRange(0, 0);
+  }
 };

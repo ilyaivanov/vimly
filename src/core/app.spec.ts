@@ -1,15 +1,9 @@
-import { spacings } from "../ui/ui";
+jest.mock("../ui/input");
 import {
-  AppState,
-  changeSelection,
   createApp,
-  focusOnItemSelected,
   focusOnParentOfFocused,
-  forEachChild,
   item,
   closedItem,
-  Item,
-  ItemView,
   mapPartialItem,
   moveDown,
   moveLeft,
@@ -17,25 +11,28 @@ import {
   moveUp,
 } from "./app";
 
+import { spacings } from "../ui/ui";
+import { exp, simulate } from "./testing";
+
 it("creating a app with two items", () => {
   const app = createApp([item("Item 1"), item("Item 2")]);
 
-  expectItemToHaveGrid(app, "Item 1", 0, 0);
-  expectItemToHaveGrid(app, "Item 2", 0, 1);
+  exp.itemToHaveGrid(app, "Item 1", 0, 0);
+  exp.itemToHaveGrid(app, "Item 2", 0, 1);
 });
 
 it("creating a app with nested items", () => {
   const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
-  expectItemToHaveGrid(app, "Item 1.1", 1, 1);
+  exp.itemToHaveGrid(app, "Item 1.1", 1, 1);
 });
 
 it("closing an item moves items below up", () => {
   const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
-  expectItemToHaveCoordinates(app, "Item 2", 0, 2 * spacings.gridSize);
+  exp.itemToHaveCoordinates(app, "Item 2", 0, 2 * spacings.gridSize);
   moveLeft(app);
-  expectItemToHaveCoordinates(app, "Item 2", 0, 1 * spacings.gridSize);
+  exp.itemToHaveCoordinates(app, "Item 2", 0, 1 * spacings.gridSize);
 });
 
 // MOVING RIGHT
@@ -44,26 +41,26 @@ it("when selected item is open moving right selects first child", () => {
 
   moveRight(app);
 
-  expectItemToBeSelected(app, "Item 1.1");
+  exp.selectedItemTitle(app, "Item 1.1");
 });
 
 //MOVING DOWN
 it("having two items pressing down selectes Item 2", () => {
   const app = createApp([item("Item 1"), item("Item 2")]);
 
-  expectItemToBeSelected(app, "Item 1");
+  exp.selectedItemTitle(app, "Item 1");
 
   moveDown(app);
-  expectItemToBeSelected(app, "Item 2");
+  exp.selectedItemTitle(app, "Item 2");
 });
 
 it("having two nested items pressing down selectes Item 1.1", () => {
   const app = createApp([item("Item 1", [mapPartialItem("Item 1.1")])]);
 
-  expectItemToBeSelected(app, "Item 1");
+  exp.selectedItemTitle(app, "Item 1");
 
   moveDown(app);
-  expectItemToBeSelected(app, "Item 1.1");
+  exp.selectedItemTitle(app, "Item 1.1");
 });
 
 it("having three nested items when last item in branch in selected moving down selectes next sibling of the parent", () => {
@@ -72,30 +69,30 @@ it("having three nested items when last item in branch in selected moving down s
     item("Item 2"),
   ]);
 
-  selectItem(app, "Item 1.1.1");
-  expectItemToBeSelected(app, "Item 1.1.1");
+  simulate.selectItem(app, "Item 1.1.1");
+  exp.selectedItemTitle(app, "Item 1.1.1");
 
   moveDown(app);
-  expectItemToBeSelected(app, "Item 2");
+  exp.selectedItemTitle(app, "Item 2");
 });
 
 it("when last item is selected moving down does nothing", () => {
   const app = createApp([item("Item 1"), item("Item 2")]);
 
-  selectItem(app, "Item 2");
+  simulate.selectItem(app, "Item 2");
   moveDown(app);
-  expectItemToBeSelected(app, "Item 2");
+  exp.selectedItemTitle(app, "Item 2");
 });
 
 // MOVING UP
 it("having two items pressing up selectes item above", () => {
   const app = createApp([item("Item 1"), item("Item 2")]);
 
-  selectItem(app, "Item 2");
-  expectItemToBeSelected(app, "Item 2");
+  simulate.selectItem(app, "Item 2");
+  exp.selectedItemTitle(app, "Item 2");
 
   moveUp(app);
-  expectItemToBeSelected(app, "Item 1");
+  exp.selectedItemTitle(app, "Item 1");
 });
 
 it("having three nested items when last item in branch in selected moving down selectes next sibling of the parent", () => {
@@ -106,30 +103,28 @@ it("having three nested items when last item in branch in selected moving down s
     item("Item 2"),
   ]);
 
-  selectItem(app, "Item 2");
-  expectItemToBeSelected(app, "Item 2");
+  simulate.selectItem(app, "Item 2");
+  exp.selectedItemTitle(app, "Item 2");
 
   moveUp(app);
-  expectItemToBeSelected(app, "Item 1.1.1");
+  exp.selectedItemTitle(app, "Item 1.1.1");
 });
 
 // MOVING LEFT
 it("having two nested items pressing left closes item", () => {
   const app = createApp([item("Item 1", [item("Item 1.1")])]);
 
-  const item1 = findItemByName(app, "Item 1");
-  expect(item1.isOpen).toBe(true);
+  exp.itemIsOpen(app, "Item 1", true);
   moveLeft(app);
-  expect(item1.isOpen).toBe(false);
+  exp.itemIsOpen(app, "Item 1", false);
 });
 
 it("when closing an item position of items below are updated", () => {
   const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
-  const item2 = findItemByName(app, "Item 2");
-  expect(app.views.get(item2)?.gridY).toBe(2);
+  exp.itemToHaveGrid(app, "Item 2", 0, 2);
   moveLeft(app);
-  expect(app.views.get(item2)?.gridY).toBe(1);
+  exp.itemToHaveGrid(app, "Item 2", 0, 1);
 });
 
 it("when opening an item position of items below are updated", () => {
@@ -138,14 +133,12 @@ it("when opening an item position of items below are updated", () => {
     item("Item 2"),
   ]);
 
-  const item2 = findItemByName(app, "Item 2");
-  expect(app.views.get(item2)?.gridY).toBe(1);
-  moveRight(app);
-  expect(app.views.get(item2)?.gridY).toBe(2);
+  exp.itemToHaveGrid(app, "Item 2", 0, 1);
 
-  const view11 = getView(app, "Item 1.1");
-  expect(view11.gridX).toBe(1);
-  expect(view11.gridY).toBe(1);
+  moveRight(app);
+
+  exp.itemToHaveGrid(app, "Item 1.1", 1, 1);
+  exp.itemToHaveGrid(app, "Item 2", 0, 2);
 });
 
 it("when trying to move left on a focused and closed item it does nothing", () => {
@@ -154,23 +147,23 @@ it("when trying to move left on a focused and closed item it does nothing", () =
     item("Item 2"),
   ]);
 
-  selectAndFocusItem(app, "Item 1");
+  simulate.selectAndFocusItem(app, "Item 1");
 
-  expectItemToHaveGrid(app, "Item 1.1", 0, 1);
+  exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
   moveLeft(app);
 
-  expectItemToHaveGrid(app, "Item 1.1", 0, 1);
+  exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
 });
 
 it("when trying to move left on a focused and open item it does nothing", () => {
   const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
-  selectAndFocusItem(app, "Item 1");
+  simulate.selectAndFocusItem(app, "Item 1");
 
-  expectItemToHaveGrid(app, "Item 1.1", 0, 1);
+  exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
   moveLeft(app);
 
-  expectItemToHaveGrid(app, "Item 1.1", 0, 1);
+  exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
 });
 
 // FOCUS
@@ -180,22 +173,22 @@ it("when focusing on closed item goind down select first child", () => {
     item("Item 2"),
   ]);
 
-  selectAndFocusItem(app, "Item 1");
+  simulate.selectAndFocusItem(app, "Item 1");
 
   moveDown(app);
-  expectItemToBeSelected(app, "Item 1.1");
+  exp.selectedItemTitle(app, "Item 1.1");
 });
 
 it("when selecting last item in focus context going down does nothing", () => {
   const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
-  selectAndFocusItem(app, "Item 1");
+  simulate.selectAndFocusItem(app, "Item 1");
 
   moveDown(app);
-  expectItemToBeSelected(app, "Item 1.1");
+  exp.selectedItemTitle(app, "Item 1.1");
 
   moveDown(app);
-  expectItemToBeSelected(app, "Item 1.1");
+  exp.selectedItemTitle(app, "Item 1.1");
 });
 
 it("when child is selected focusing on parent changes focus", () => {
@@ -203,7 +196,7 @@ it("when child is selected focusing on parent changes focus", () => {
     item("Item 1", [item("Item 1.1", [item("Item 1.1.1")])]),
   ]);
 
-  selectAndFocusItem(app, "Item 1.1");
+  simulate.selectAndFocusItem(app, "Item 1.1");
 
   focusOnParentOfFocused(app);
   expect(app.itemFocused.title).toBe("Item 1");
@@ -220,11 +213,11 @@ it("focusing on an item moves that item to the left by 1 grid cell and up by spa
     item("Item 1", [item("Item 1.1", [item("Item 1.1.1")])]),
   ]);
 
-  selectAndFocusItem(app, "Item 1.1");
+  simulate.selectAndFocusItem(app, "Item 1.1");
 
-  expectItemToHaveGrid(app, "Item 1.1", -1, 0);
+  exp.itemToHaveGrid(app, "Item 1.1", -1, 0);
 
-  expectItemToHaveCoordinates(
+  exp.itemToHaveCoordinates(
     app,
     "Item 1.1",
     -1 * spacings.gridSize,
@@ -232,65 +225,24 @@ it("focusing on an item moves that item to the left by 1 grid cell and up by spa
   );
 });
 
-//UTILS
-const selectAndFocusItem = (app: AppState, itemTitle: string) => {
-  selectItem(app, itemTitle);
-  focusOnItemSelected(app);
-};
+//EDITING
 
-const selectItem = (app: AppState, itemTitle: string) => {
-  changeSelection(app, findItemByName(app, itemTitle));
-};
+it("having two items and selected first pressing o creates a new item under", () => {
+  const app = createApp([item("Item 1"), item("Item 2")]);
 
-const expectItemToHaveGrid = (
-  app: AppState,
-  item: string,
-  gridX: number,
-  gridY: number
-) => {
-  const view = getView(app, item);
+  simulate.keydown(app, "KeyO");
 
-  expect(view.gridX).toBe(gridX);
-  expect(view.gridY).toBe(gridY);
-};
+  exp.firstLevelItems(app, ["Item 1", "", "Item 2"]);
 
-const expectItemToHaveCoordinates = (
-  app: AppState,
-  item: string,
-  x: number,
-  y: number
-) => {
-  const view = getView(app, item);
+  exp.selectedItemTitle(app, "");
+});
 
-  if (view.x !== x) {
-    throw new Error(`Expected ${item} to have x ${x} but got ${view.x}`);
-  }
-  if (view.y !== y) {
-    throw new Error(`Expected ${item} to have y ${y} but got ${view.y}`);
-  }
-};
+it("having two items and selected first pressing O creates a new item before", () => {
+  const app = createApp([item("Item 1"), item("Item 2")]);
 
-const expectItemToBeSelected = (app: AppState, itemTitle: string) => {
-  if (!app.selectedItem)
-    throw new Error(
-      `No item is selected. Expected ${itemTitle}, but was ${app.selectedItem}`
-    );
-  expect(app.selectedItem.title).toBe(itemTitle);
-};
+  simulate.keydown(app, "KeyO", { shiftKey: true });
 
-const findItemByName = (app: AppState, title: string): Item => {
-  let item: Item | undefined;
-  forEachChild(app.root, (c) => {
-    if (c.title === title) item = c;
-  });
-  if (!item) throw new Error(`Item ${title} not found`);
-  return item;
-};
+  exp.firstLevelItems(app, ["", "Item 1", "Item 2"]);
 
-const getView = (app: AppState, item: string): ItemView => {
-  const view = Array.from(app.views.values()).find(
-    (v) => v.item.title === item
-  );
-  if (!view) throw new Error(`Item ${item} not found in views`);
-  return view;
-};
+  exp.selectedItemTitle(app, "");
+});

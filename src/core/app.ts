@@ -1,3 +1,4 @@
+import { showInput } from "../ui/input";
 import { spacings, theme } from "../ui/ui";
 
 export type Item = {
@@ -36,11 +37,7 @@ export const closedItem = (title: string, children: Item[] = []): Item =>
 
 export const mapPartialItem = (item: Partial<Item> | string): Item => {
   if (typeof item === "string")
-    return {
-      title: item,
-      isOpen: false,
-      children: [],
-    };
+    return { title: item, isOpen: false, children: [] };
   else {
     const children = item.children ? item.children.map(mapPartialItem) : [];
     const res: Item = {
@@ -172,6 +169,31 @@ export const changeSelection = (app: AppState, item: Item | undefined) => {
   if (currentItem?.view) {
     const { view } = currentItem;
     updateView(app, view, view.gridX, view.gridY);
+  }
+};
+
+export const createItemNearSelected = (
+  app: AppState,
+  position: "before" | "after"
+) => {
+  const context = app.selectedItem?.parent?.children;
+  if (context && app.selectedItem) {
+    const index = context.indexOf(app.selectedItem);
+    const newItem = mapPartialItem("");
+    newItem.parent = app.selectedItem.parent;
+
+    const targetIndex = index + (position === "after" ? 1 : 0);
+
+    context.splice(targetIndex, 0, newItem);
+    changeSelection(app, newItem);
+
+    layout(app, app.itemFocused, (item, gridX, gridY) => {
+      const view = app.views.get(item);
+      if (view) updateView(app, view, gridX, gridY);
+      else app.views.set(item, createView(app, item, gridX, gridY));
+    });
+
+    showInput(app, "start");
   }
 };
 
