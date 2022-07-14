@@ -3,21 +3,17 @@ import { fillCircle, fillTextAtMiddle, outlineCircle, xOffset } from "./canvas";
 import { itemEdited } from "./input";
 import { spacings, theme } from "./ui";
 
+const { circleRadius, circleLineWidth } = spacings;
+
 export const drawApp = (app: AppState) => {
   window.ctx.fillStyle = theme.bg;
   window.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
   window.ctx.translate(xOffset, spacings.offsetFromTop);
 
-  for (const item of app.views.keys()) {
-    const view = app.views.get(item);
-    if (view) {
-      const parentView =
-        view.item.parent && view.item.parent !== app.itemFocused
-          ? view.item.parent.view
-          : undefined;
-      viewItem(app, view, parentView);
-    }
+  for (const view of app.views.values()) {
+    const parentView = view.item.parent ? view.item.parent.view : undefined;
+    viewItem(app, view, parentView);
   }
   window.ctx.resetTransform();
 };
@@ -33,7 +29,6 @@ const viewItem = (
 
   const isItemFocused = item == app.itemFocused;
 
-  const { circleRadius, circleLineWidth } = spacings;
   if (!isItemFocused) {
     if (hasChildren(item)) fillCircle(x, y, circleRadius, view.circleColor);
 
@@ -49,7 +44,9 @@ const viewItem = (
     fillTextAtMiddle(item.title, textX, textY, view.fontSize, view.textColor);
   }
 
-  if (parentView && !isItemFocused) lineBetween(view, parentView);
+  const isParentFocused = parentView?.item == app.itemFocused;
+  if (parentView && !isItemFocused && !isParentFocused)
+    lineBetween(view, parentView);
 };
 
 const lineBetween = (view1: ItemView, view2: ItemView) => {
