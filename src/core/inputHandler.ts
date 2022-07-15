@@ -1,36 +1,48 @@
 import { itemEdited, showInput } from "../ui/input";
-import * as actions from "./app";
+import {
+  focusOnParentOfFocused,
+  moveDown,
+  moveLeft,
+  moveRight,
+  moveUp,
+  AppState,
+  moveSelectedItem,
+  focusOnItemSelected,
+  createItemNearSelected,
+  removeSelected,
+} from "./app";
+import { syncViews } from "./app.layout";
 
-export const onKeyPress = (app: actions.AppState, event: KeyboardEvent) => {
+export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
   if (itemEdited) return;
 
   if (event.code === "ArrowDown" || event.code === "KeyJ") {
-    if (event.shiftKey && event.altKey) actions.moveSelectedItem(app, "down");
-    else actions.moveDown(app);
+    if (event.shiftKey && event.altKey) moveSelectedItem(app, "down");
+    else moveDown(app);
   } else if (event.code === "ArrowUp" || event.code === "KeyK") {
-    if (event.shiftKey && event.altKey) actions.moveSelectedItem(app, "up");
-    else actions.moveUp(app);
+    if (event.shiftKey && event.altKey) moveSelectedItem(app, "up");
+    else moveUp(app);
   } else if (event.code === "ArrowLeft" || event.code === "KeyH") {
-    if (event.shiftKey && event.altKey) actions.moveSelectedItem(app, "left");
-    else if (event.altKey) actions.focusOnParentOfFocused(app);
-    else actions.moveLeft(app);
+    if (event.shiftKey && event.altKey) moveSelectedItem(app, "left");
+    else if (event.altKey) focusOnParentOfFocused(app);
+    else moveLeft(app);
 
     event.preventDefault();
   } else if (event.code === "ArrowRight" || event.code === "KeyL") {
-    if (event.shiftKey && event.altKey) actions.moveSelectedItem(app, "right");
-    else if (event.altKey) actions.focusOnItemSelected(app);
-    else actions.moveRight(app);
+    if (event.shiftKey && event.altKey) moveSelectedItem(app, "right");
+    else if (event.altKey) focusOnItemSelected(app);
+    else moveRight(app);
 
     event.preventDefault();
   } else if (event.code === "KeyI") {
-    if (event.shiftKey) actions.createItemNearSelected(app, "inside");
+    if (event.shiftKey) createItemNearSelected(app, "inside");
     else showInput(app, "start");
     event.preventDefault();
   } else if (event.code === "KeyA" && event.shiftKey) {
     showInput(app, "end");
     event.preventDefault();
   } else if (event.code === "KeyX") {
-    actions.removeSelected(app);
+    removeSelected(app);
     event.preventDefault();
   } else if (event.code === "KeyR" && !event.ctrlKey) {
     if (app.selectedItem) {
@@ -39,7 +51,9 @@ export const onKeyPress = (app: actions.AppState, event: KeyboardEvent) => {
     }
     event.preventDefault();
   } else if (event.code === "KeyO") {
-    actions.createItemNearSelected(app, event.shiftKey ? "before" : "after");
+    createItemNearSelected(app, event.shiftKey ? "before" : "after");
     event.preventDefault();
   }
+
+  syncViews(app);
 };

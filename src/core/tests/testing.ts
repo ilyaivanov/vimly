@@ -1,4 +1,3 @@
-jest.mock("../ui/input");
 import {
   AppState,
   changeSelection,
@@ -6,11 +5,9 @@ import {
   forEachChild,
   Item,
   ItemView,
-} from "./app";
+} from "../app";
 
-import { onKeyPress } from "./inputHandler";
-
-//UTILS
+import { onKeyPress } from "../inputHandler";
 
 export const simulate = {
   keydown: (app: AppState, key: string, modifiers?: Partial<KeyboardEvent>) => {

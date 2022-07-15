@@ -1,4 +1,5 @@
-import { AppState, hasChildren, ItemView } from "../core/app";
+import { AppState, ItemView } from "../core/app";
+import { hasChildren } from "../core/app.movement";
 import { fillCircle, fillTextAtMiddle, outlineCircle, xOffset } from "./canvas";
 import { itemEdited } from "./input";
 import { spacings, theme } from "./ui";

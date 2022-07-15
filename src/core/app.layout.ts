@@ -1,0 +1,114 @@
+import { AppState, Item, ItemView } from "./app";
+import { isRoot } from "./app.movement";
+import { spacings, theme } from "../ui/ui";
+
+export const syncViews = (app: AppState) => {
+  layout(app, app.itemFocused, (item, gridX, gridY) => {
+    const view = app.views.get(item);
+    if (view) updateView(app, view, gridX, gridY);
+    else app.views.set(item, createView(app, item, gridX, gridY));
+  });
+};
+
+type LayoutCallback = (item: Item, gridX: number, gridY: number) => void;
+
+const layout = (app: AppState, item: Item, cb: LayoutCallback) =>
+  traverseItems(
+    app,
+    isRoot(item) ? item.children : [item],
+    isRoot(item) ? 0 : -1,
+    0,
+    cb
+  );
+
+const traverseItems = (
+  app: AppState,
+  items: Item[],
+  gridX: number,
+  gridY: number,
+  fn: LayoutCallback
+): number =>
+  items.reduce((totalGridHeight, child) => {
+    const currentGridY = gridY + totalGridHeight;
+    fn(child, gridX, currentGridY);
+
+    return (
+      totalGridHeight +
+      1 +
+      (hasVisibleChildren(app, child)
+        ? traverseItems(app, child.children, gridX + 1, currentGridY + 1, fn)
+        : 0)
+    );
+  }, 0);
+
+const hasVisibleChildren = (app: AppState, item: Item) =>
+  (item.isOpen && item.children.length > 0) || app.itemFocused == item;
+
+// View related stuff
+const createView = (
+  app: AppState,
+  item: Item,
+  gridX: number,
+  gridY: number
+): ItemView => {
+  const x = calcXCoordiante(gridX);
+  const y = calcYCoordiante(app, item, gridY);
+  const isSelected = app.selectedItem == item;
+
+  const view: ItemView = {
+    gridX,
+    gridY,
+    x,
+    y,
+    item,
+    fontSize: getFontSize(gridX),
+    circleColor: getCircleColor(isSelected),
+    textColor: getTextColor(isSelected, gridX),
+  };
+  item.view = view;
+  return view;
+};
+
+const updateView = (
+  app: AppState,
+  view: ItemView,
+  gridX: number,
+  gridY: number
+): ItemView => {
+  view.gridX = gridX;
+  view.gridY = gridY;
+  view.x = calcXCoordiante(gridX);
+  view.y = calcYCoordiante(app, view.item, gridY);
+
+  const isSelected = app.selectedItem == view.item;
+  view.fontSize = getFontSize(gridX);
+  view.circleColor = getCircleColor(isSelected);
+  view.textColor = getTextColor(isSelected, gridX);
+  return view;
+};
+
+const getFontSize = (gridX: number) =>
+  gridX == -1
+    ? spacings.titleFontSize
+    : gridX == 0
+    ? spacings.firstLevelfontSize
+    : spacings.fontSize;
+
+const getTextColor = (isSelected: boolean, gridX: number) =>
+  isSelected
+    ? theme.selected
+    : gridX == -1 || gridX == 0
+    ? theme.firstLevelFont
+    : theme.font;
+
+const getCircleColor = (isSelected: boolean) =>
+  isSelected ? theme.selected : theme.filledCircle;
+
+const calcXCoordiante = (gridX: number): number => gridX * spacings.gridSize;
+
+const calcYCoordiante = (app: AppState, item: Item, gridY: number): number => {
+  const isFocused = app.itemFocused == item;
+  return (
+    gridY * spacings.gridSize + (isFocused ? spacings.titleOffsetFromTop : 0)
+  );
+};

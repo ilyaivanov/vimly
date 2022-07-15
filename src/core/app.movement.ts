@@ -8,7 +8,6 @@ export const moveItemRight = (app: AppState, item: Item) => {
       const prevItem = parent.children[index - 1];
       if (!prevItem.isOpen) {
         prevItem.isOpen = true;
-        // trigger("item-toggled", prevItem);
       }
       removeChildAt(parent, index);
       addChildAt(prevItem, item, prevItem.children.length);
@@ -77,3 +76,7 @@ export const addChildAt = (parent: Item, item: Item, index: number) => {
   item.parent = parent;
   updateIsOpenFlag(parent);
 };
+
+export const isRoot = (item: Item) => !item.parent;
+
+export const hasChildren = (item: Item) => item.children.length > 0;

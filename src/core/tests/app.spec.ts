@@ -1,17 +1,6 @@
-jest.mock("../ui/input");
-import {
-  createApp,
-  focusOnParentOfFocused,
-  item,
-  closedItem,
-  mapPartialItem,
-  moveDown,
-  moveLeft,
-  moveRight,
-  moveUp,
-} from "./app";
-
-import { spacings } from "../ui/ui";
+jest.mock("../../ui/input");
+import { createApp, item, closedItem } from "../app";
+import { spacings } from "../../ui/ui";
 import { exp, simulate } from "./testing";
 
 describe("BASE", () => {
@@ -32,7 +21,7 @@ describe("BASE", () => {
     const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
     exp.itemToHaveCoordinates(app, "Item 2", 0, 2 * spacings.gridSize);
-    moveLeft(app);
+    simulate.keydown(app, "KeyH");
     exp.itemToHaveCoordinates(app, "Item 2", 0, 1 * spacings.gridSize);
   });
 });
@@ -41,7 +30,7 @@ describe("MOVING RIGHT", () => {
   it("when selected item is open moving right selects first child", () => {
     const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
-    moveRight(app);
+    simulate.keydown(app, "KeyL");
 
     exp.selectedItemTitle(app, "Item 1.1");
   });
@@ -53,16 +42,16 @@ describe("MOVING DOWN", () => {
 
     exp.selectedItemTitle(app, "Item 1");
 
-    moveDown(app);
+    simulate.keydown(app, "KeyJ");
     exp.selectedItemTitle(app, "Item 2");
   });
 
   it("having two nested items pressing down selectes Item 1.1", () => {
-    const app = createApp([item("Item 1", [mapPartialItem("Item 1.1")])]);
+    const app = createApp([item("Item 1", [item("Item 1.1")])]);
 
     exp.selectedItemTitle(app, "Item 1");
 
-    moveDown(app);
+    simulate.keydown(app, "KeyJ");
     exp.selectedItemTitle(app, "Item 1.1");
   });
 
@@ -75,7 +64,7 @@ describe("MOVING DOWN", () => {
     simulate.selectItem(app, "Item 1.1.1");
     exp.selectedItemTitle(app, "Item 1.1.1");
 
-    moveDown(app);
+    simulate.keydown(app, "KeyJ");
     exp.selectedItemTitle(app, "Item 2");
   });
 
@@ -83,7 +72,7 @@ describe("MOVING DOWN", () => {
     const app = createApp([item("Item 1"), item("Item 2")]);
 
     simulate.selectItem(app, "Item 2");
-    moveDown(app);
+    simulate.keydown(app, "KeyJ");
     exp.selectedItemTitle(app, "Item 2");
   });
 });
@@ -95,7 +84,7 @@ describe("MOVING UP", () => {
     simulate.selectItem(app, "Item 2");
     exp.selectedItemTitle(app, "Item 2");
 
-    moveUp(app);
+    simulate.keydown(app, "KeyK");
     exp.selectedItemTitle(app, "Item 1");
   });
 
@@ -110,7 +99,7 @@ describe("MOVING UP", () => {
     simulate.selectItem(app, "Item 2");
     exp.selectedItemTitle(app, "Item 2");
 
-    moveUp(app);
+    simulate.keydown(app, "KeyK");
     exp.selectedItemTitle(app, "Item 1.1.1");
   });
 });
@@ -120,7 +109,7 @@ describe("MOVING LEFT", () => {
     const app = createApp([item("Item 1", [item("Item 1.1")])]);
 
     exp.itemIsOpen(app, "Item 1", true);
-    moveLeft(app);
+    simulate.keydown(app, "KeyH");
     exp.itemIsOpen(app, "Item 1", false);
   });
 
@@ -128,7 +117,7 @@ describe("MOVING LEFT", () => {
     const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
     exp.itemToHaveGrid(app, "Item 2", 0, 2);
-    moveLeft(app);
+    simulate.keydown(app, "KeyH");
     exp.itemToHaveGrid(app, "Item 2", 0, 1);
   });
 
@@ -140,7 +129,7 @@ describe("MOVING LEFT", () => {
 
     exp.itemToHaveGrid(app, "Item 2", 0, 1);
 
-    moveRight(app);
+    simulate.keydown(app, "KeyL");
 
     exp.itemToHaveGrid(app, "Item 1.1", 1, 1);
     exp.itemToHaveGrid(app, "Item 2", 0, 2);
@@ -152,10 +141,10 @@ describe("MOVING LEFT", () => {
       item("Item 2"),
     ]);
 
-    simulate.selectAndFocusItem(app, "Item 1");
+    simulate.keydown(app, "KeyL", { altKey: true });
 
     exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
-    moveLeft(app);
+    simulate.keydown(app, "KeyH");
 
     exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
   });
@@ -163,10 +152,10 @@ describe("MOVING LEFT", () => {
   it("when trying to move left on a focused and open item it does nothing", () => {
     const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
-    simulate.selectAndFocusItem(app, "Item 1");
+    simulate.keydown(app, "KeyL", { altKey: true });
 
     exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
-    moveLeft(app);
+    simulate.keydown(app, "KeyH");
 
     exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
   });
@@ -179,21 +168,21 @@ describe("FOCUS", () => {
       item("Item 2"),
     ]);
 
-    simulate.selectAndFocusItem(app, "Item 1");
+    simulate.keydown(app, "KeyL", { altKey: true });
 
-    moveDown(app);
+    simulate.keydown(app, "KeyJ");
     exp.selectedItemTitle(app, "Item 1.1");
   });
 
   it("when selecting last item in focus context going down does nothing", () => {
     const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
-    simulate.selectAndFocusItem(app, "Item 1");
+    simulate.keydown(app, "KeyL", { altKey: true });
 
-    moveDown(app);
+    simulate.keydown(app, "KeyJ");
     exp.selectedItemTitle(app, "Item 1.1");
 
-    moveDown(app);
+    simulate.keydown(app, "KeyJ");
     exp.selectedItemTitle(app, "Item 1.1");
   });
 
@@ -202,15 +191,16 @@ describe("FOCUS", () => {
       item("Item 1", [item("Item 1.1", [item("Item 1.1.1")])]),
     ]);
 
-    simulate.selectAndFocusItem(app, "Item 1.1");
+    simulate.keydown(app, "KeyJ");
+    simulate.keydown(app, "KeyL", { altKey: true });
 
-    focusOnParentOfFocused(app);
+    simulate.keydown(app, "KeyH", { altKey: true });
     expect(app.itemFocused.title).toBe("Item 1");
 
-    focusOnParentOfFocused(app);
+    simulate.keydown(app, "KeyH", { altKey: true });
     expect(app.itemFocused.title).toBe("Root");
 
-    focusOnParentOfFocused(app);
+    simulate.keydown(app, "KeyH", { altKey: true });
     expect(app.itemFocused.title).toBe("Root");
   });
 
@@ -219,7 +209,8 @@ describe("FOCUS", () => {
       item("Item 1", [item("Item 1.1", [item("Item 1.1.1")])]),
     ]);
 
-    simulate.selectAndFocusItem(app, "Item 1.1");
+    simulate.keydown(app, "KeyJ");
+    simulate.keydown(app, "KeyL", { altKey: true });
 
     exp.itemToHaveGrid(app, "Item 1.1", -1, 0);
 
@@ -236,11 +227,15 @@ describe("EDITING", () => {
   it("pressing o creates an item under", () => {
     const app = createApp([item("Item 1"), item("Item 2")]);
 
+    exp.itemToHaveGrid(app, "Item 2", 0, 1);
+
     simulate.keydown(app, "KeyO");
 
     exp.firstLevelItems(app, ["Item 1", "", "Item 2"]);
 
     exp.selectedItemTitle(app, "");
+
+    exp.itemToHaveGrid(app, "Item 2", 0, 2);
   });
 
   it("pressing O creates an item before", () => {
@@ -327,10 +322,14 @@ describe("REMOVING", () => {
 
     simulate.selectItem(app, "Item 2");
 
+    exp.itemToHaveGrid(app, "Item 3", 0, 4);
+
     simulate.keydown(app, "KeyX");
 
     exp.firstLevelItems(app, ["Item 1", "Item 3"]);
     exp.selectedItemTitle(app, "Item 2.2");
+
+    exp.itemToHaveGrid(app, "Item 3", 0, 3);
 
     simulate.selectItem(app, "Item 1");
     simulate.keydown(app, "KeyX");
