@@ -13,7 +13,7 @@ import { onKeyPress } from "./inputHandler";
 //UTILS
 
 export const simulate = {
-  keydown: (app: AppState, key: string, modifiers?: { shiftKey?: boolean }) => {
+  keydown: (app: AppState, key: string, modifiers?: Partial<KeyboardEvent>) => {
     const event = new KeyboardEvent("keydown", { code: key, ...modifiers });
 
     onKeyPress(app, event);
@@ -38,13 +38,23 @@ export const exp = {
       throw new Error(
         `No item is selected. Expected ${itemTitle}, but was ${app.selectedItem}`
       );
-    expect(app.selectedItem.title).toBe(itemTitle);
+
+    verifyItemProp(app.selectedItem, "title", itemTitle);
   },
 
   itemIsOpen: (app: AppState, itemTitle: string, isOpen: boolean) => {
     const item = findItemByName(app, itemTitle);
 
     verifyItemProp(item, "isOpen", isOpen);
+  },
+
+  itemToHaveChildren: (
+    app: AppState,
+    itemTitle: string,
+    children: string[]
+  ) => {
+    const item = findItemByName(app, itemTitle);
+    expect(item.children.map((r) => r.title)).toEqual(children);
   },
 
   itemToHaveGrid: (
@@ -81,7 +91,7 @@ const verifyViewProp = (
 
   if (currentValue !== expectedValue) {
     throw new Error(
-      `Expected ${view.item.title} to have ${propName} ${expectedValue} but got ${currentValue}`
+      `Expected ${view.item.title} to have ${propName} '${expectedValue}' but got '${currentValue}'`
     );
   }
 };
@@ -95,7 +105,7 @@ const verifyItemProp = (
 
   if (currentValue !== expectedValue) {
     throw new Error(
-      `Expected ${item.title} to have ${propName} ${expectedValue} but got ${currentValue}`
+      `Expected ${item.title} to have ${propName} '${expectedValue}' but got '${currentValue}'`
     );
   }
 };

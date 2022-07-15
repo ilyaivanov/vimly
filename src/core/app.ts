@@ -1,5 +1,13 @@
 import { showInput } from "../ui/input";
 import { spacings, theme } from "../ui/ui";
+import {
+  addChildAt,
+  moveItemDown,
+  moveItemLeft,
+  moveItemRight,
+  moveItemUp,
+  removeChild,
+} from "./app.movement";
 
 export type Item = {
   title: string;
@@ -174,17 +182,21 @@ export const changeSelection = (app: AppState, item: Item | undefined) => {
 
 export const createItemNearSelected = (
   app: AppState,
-  position: "before" | "after"
+  position: "before" | "after" | "inside"
 ) => {
   const context = app.selectedItem?.parent?.children;
   if (context && app.selectedItem) {
-    const index = context.indexOf(app.selectedItem);
     const newItem = mapPartialItem("");
-    newItem.parent = app.selectedItem.parent;
 
-    const targetIndex = index + (position === "after" ? 1 : 0);
+    if (position === "inside") {
+      addChildAt(app.selectedItem, newItem, 0);
+    } else {
+      const index = context.indexOf(app.selectedItem);
 
-    context.splice(targetIndex, 0, newItem);
+      const targetIndex = index + (position === "after" ? 1 : 0);
+      if (app.selectedItem.parent)
+        addChildAt(app.selectedItem.parent, newItem, targetIndex);
+    }
     changeSelection(app, newItem);
 
     layout(app, app.itemFocused, (item, gridX, gridY) => {
@@ -194,6 +206,51 @@ export const createItemNearSelected = (
     });
 
     showInput(app, "start");
+  }
+};
+
+export const removeSelected = (app: AppState) => {
+  const { selectedItem } = app;
+  if (selectedItem && selectedItem.parent) {
+    const nextItemToSelect =
+      getItemAbove(selectedItem) || getFollowingItem(selectedItem);
+
+    forEachChild(selectedItem, (item) => {
+      app.views.delete(item);
+    });
+    app.views.delete(selectedItem);
+    removeChild(selectedItem.parent, selectedItem);
+
+    layout(app, app.itemFocused, (item, gridX, gridY) => {
+      const view = app.views.get(item);
+      if (view) updateView(app, view, gridX, gridY);
+      else app.views.set(item, createView(app, item, gridX, gridY));
+    });
+    changeSelection(app, nextItemToSelect);
+  }
+};
+
+type MovingDirection = "up" | "down" | "left" | "right";
+const handlers: Record<MovingDirection, typeof moveItemLeft> = {
+  down: moveItemDown,
+  up: moveItemUp,
+  left: moveItemLeft,
+  right: moveItemRight,
+};
+
+export const moveSelectedItem = (
+  app: AppState,
+  movingDirection: MovingDirection
+) => {
+  const { selectedItem } = app;
+
+  if (selectedItem) {
+    handlers[movingDirection](app, selectedItem);
+    layout(app, app.itemFocused, (item, gridX, gridY) => {
+      const view = app.views.get(item);
+      if (view) updateView(app, view, gridX, gridY);
+      else app.views.set(item, createView(app, item, gridX, gridY));
+    });
   }
 };
 
@@ -304,7 +361,9 @@ const getItemAbove = (item: Item): Item | undefined => {
     if (index > 0) {
       const previousItem = parent.children[index - 1];
       if (previousItem.isOpen)
-        return getLastNestedItem(previousItem.children[0]);
+        return getLastNestedItem(
+          previousItem.children[previousItem.children.length - 1]
+        );
       return getLastNestedItem(previousItem);
     } else if (!isRoot(parent)) return parent;
   }
