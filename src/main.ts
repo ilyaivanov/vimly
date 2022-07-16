@@ -1,27 +1,28 @@
-import { item, createApp } from "./core/app";
+import { loadFromLocalStorage, saveToLocalStorage } from "./core";
 import { drawApp } from "./ui/draw";
 import { initCanvas, setOnResizeCb } from "./ui/canvas";
-import { onKeyPress } from "./core/inputHandler";
+import { onKeyPress, syncViews } from "./core";
+import { loadFromFile, saveToFile } from "./core/persistance";
 
 initCanvas();
 
-const app = createApp([
-  item("Viztly", [
-    item("Viztly 1.1"),
-    item("Viztly 1.2"),
-    item("Viztly 1.3"),
-    item("Viztly 1.4"),
-    item("Viztly 1.5"),
-  ]),
-  item("Viztly 3"),
-  item("Viztly 4"),
-  item("Viztly 5"),
-  item("Viztly 6"),
-]);
+let app = loadFromLocalStorage();
+syncViews(app);
 
-document.addEventListener("keydown", (event) => {
-  onKeyPress(app, event);
+document.addEventListener("keydown", async (event) => {
+  if (event.code === "KeyS" && event.ctrlKey) {
+    event.preventDefault();
+    saveToFile(app);
+  } else if (event.code === "KeyL" && event.ctrlKey) {
+    event.preventDefault();
+    app = await loadFromFile();
+    syncViews(app);
+  } else {
+    onKeyPress(app, event);
+  }
+
   drawApp(app);
+  saveToLocalStorage(app);
 });
 
 drawApp(app);

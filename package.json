@@ -25,6 +25,7 @@
   "homepage": "https://github.com/ilyaivanov/viztly",
   "devDependencies": {
     "@types/jest": "^27.0.1",
+    "@types/wicg-file-system-access": "^2020.9.5",
     "@typescript-eslint/eslint-plugin": "^5.30.6",
     "@typescript-eslint/parser": "^5.30.6",
     "clean-webpack-plugin": "^4.0.0",

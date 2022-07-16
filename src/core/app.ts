@@ -1,4 +1,4 @@
-import { ItemView, syncViews } from "./app.layout";
+import { ItemView } from "./app.layout";
 import {
   removeChildAt,
   addChildAt,
@@ -16,8 +16,8 @@ export type Item = {
   title: string;
   isOpen: boolean;
   children: Item[];
-  view?: ItemView;
 
+  view?: ItemView;
   parent?: Item;
 };
 
@@ -48,17 +48,6 @@ const mapPartialItem = (item: Partial<Item> | string): Item => {
     res.children.forEach((c) => (c.parent = res));
     return res;
   }
-};
-
-export const createApp = (items: Item[]): AppState => {
-  const root: Item = mapPartialItem({ title: "Root", children: items });
-
-  const selectedItem = root.children[0];
-
-  const app = { root, views: new Map(), selectedItem, itemFocused: root };
-
-  syncViews(app);
-  return app;
 };
 
 export const focusOnItemSelected = (app: AppState) => {
