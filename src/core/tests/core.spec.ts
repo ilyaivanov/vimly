@@ -1,5 +1,5 @@
 jest.mock("../../ui/input");
-import { createApp, item, closedItem } from "../app";
+import { createApp, item, closedItem } from "../index";
 import { spacings } from "../../ui/ui";
 import { exp, simulate } from "./testing";
 
@@ -33,6 +33,20 @@ describe("MOVING RIGHT", () => {
     simulate.keydown(app, "KeyL");
 
     exp.selectedItemTitle(app, "Item 1.1");
+  });
+
+  it("when opening an item position of items below are updated", () => {
+    const app = createApp([
+      closedItem("Item 1", [item("Item 1.1")]),
+      item("Item 2"),
+    ]);
+
+    exp.itemToHaveGrid(app, "Item 2", 0, 1);
+
+    simulate.keydown(app, "KeyL");
+
+    exp.itemToHaveGrid(app, "Item 1.1", 1, 1);
+    exp.itemToHaveGrid(app, "Item 2", 0, 2);
   });
 });
 
@@ -113,26 +127,25 @@ describe("MOVING LEFT", () => {
     exp.itemIsOpen(app, "Item 1", false);
   });
 
+  it("moving left on an empty item selects parent", () => {
+    const app = createApp([item("Item 1", [item("Item 1.1")])]);
+
+    exp.selectedItemTitle(app, "Item 1");
+    simulate.keydown(app, "KeyL");
+
+    exp.selectedItemTitle(app, "Item 1.1");
+
+    simulate.keydown(app, "KeyH");
+
+    exp.selectedItemTitle(app, "Item 1");
+  });
+
   it("when closing an item position of items below are updated", () => {
     const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
     exp.itemToHaveGrid(app, "Item 2", 0, 2);
     simulate.keydown(app, "KeyH");
     exp.itemToHaveGrid(app, "Item 2", 0, 1);
-  });
-
-  it("when opening an item position of items below are updated", () => {
-    const app = createApp([
-      closedItem("Item 1", [item("Item 1.1")]),
-      item("Item 2"),
-    ]);
-
-    exp.itemToHaveGrid(app, "Item 2", 0, 1);
-
-    simulate.keydown(app, "KeyL");
-
-    exp.itemToHaveGrid(app, "Item 1.1", 1, 1);
-    exp.itemToHaveGrid(app, "Item 2", 0, 2);
   });
 
   it("when trying to move left on a focused and closed item it does nothing", () => {
@@ -274,10 +287,14 @@ describe("MOVEMENT", () => {
 
     simulate.selectItem(app, "Item 2");
 
+    exp.itemIsOpen(app, "Item 1", false);
+
     simulate.keydown(app, "KeyL", { shiftKey: true, altKey: true });
 
     exp.firstLevelItems(app, ["Item 1"]);
     exp.itemToHaveChildren(app, "Item 1", ["Item 2"]);
+
+    exp.itemIsOpen(app, "Item 1", true);
   });
 
   it("having two nested items when nested is moved left it becomes sibling of a parent", () => {
@@ -327,6 +344,7 @@ describe("REMOVING", () => {
     simulate.keydown(app, "KeyX");
 
     exp.firstLevelItems(app, ["Item 1", "Item 3"]);
+
     exp.selectedItemTitle(app, "Item 2.2");
 
     exp.itemToHaveGrid(app, "Item 3", 0, 3);
@@ -337,4 +355,18 @@ describe("REMOVING", () => {
     exp.firstLevelItems(app, ["Item 3"]);
     exp.selectedItemTitle(app, "Item 3");
   });
+});
+
+it("removing item should remove it's view", () => {
+  const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
+  const item1 = app.root.children[0];
+  const item11 = app.root.children[0].children[0];
+
+  expect(app.views.get(item1)).toBeDefined();
+  expect(app.views.get(item11)).toBeDefined();
+
+  simulate.keydown(app, "KeyX");
+
+  expect(app.views.get(item1)).toBeUndefined();
+  expect(app.views.get(item11)).toBeUndefined();
 });

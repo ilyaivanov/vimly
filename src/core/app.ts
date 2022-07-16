@@ -1,5 +1,5 @@
 import { showInput } from "../ui/input";
-import { syncViews } from "./app.layout";
+import { ItemView, syncViews } from "./app.layout";
 import {
   addChildAt,
   hasChildren,
@@ -18,18 +18,6 @@ export type Item = {
   view?: ItemView;
 
   parent?: Item;
-};
-
-export type ItemView = {
-  gridX: number;
-  gridY: number;
-  item: Item;
-
-  x: number;
-  y: number;
-  fontSize: number;
-  textColor: string;
-  circleColor: string;
 };
 
 export type AppState = {
@@ -86,7 +74,6 @@ export const focusOnParentOfFocused = (app: AppState) => {
 const focusOnItem = (app: AppState, item: Item | undefined) => {
   if (item) {
     app.itemFocused = item;
-    app.views.clear();
   }
 };
 
@@ -102,9 +89,6 @@ export const moveLeft = (app: AppState) => {
   if (app.selectedItem) {
     if (app.selectedItem.isOpen && app.selectedItem !== app.itemFocused) {
       app.selectedItem.isOpen = false;
-      forEachChild(app.selectedItem, (item) => {
-        app.views.delete(item);
-      });
     } else if (app.selectedItem.parent && !isRoot(app.selectedItem.parent))
       changeSelection(app, app.selectedItem.parent);
   }
@@ -155,10 +139,6 @@ export const removeSelected = (app: AppState) => {
     const nextItemToSelect =
       getItemAbove(selectedItem) || getFollowingItem(selectedItem);
 
-    forEachChild(selectedItem, (item) => {
-      app.views.delete(item);
-    });
-    app.views.delete(selectedItem);
     removeChild(selectedItem.parent, selectedItem);
 
     changeSelection(app, nextItemToSelect);
@@ -184,7 +164,6 @@ export const moveSelectedItem = (
   }
 };
 
-// MOVEMENT
 const getItemBelow = (app: AppState, item: Item): Item | undefined =>
   (item.isOpen && item.children.length > 0) || app.itemFocused == item
     ? item.children[0]

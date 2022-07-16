@@ -1,11 +1,10 @@
 import {
   AppState,
   changeSelection,
-  focusOnItemSelected,
   forEachChild,
   Item,
   ItemView,
-} from "../app";
+} from "../index";
 
 import { onKeyPress } from "../inputHandler";
 
@@ -18,7 +17,7 @@ export const simulate = {
 
   selectAndFocusItem: (app: AppState, itemTitle: string) => {
     simulate.selectItem(app, itemTitle);
-    focusOnItemSelected(app);
+    simulate.keydown(app, "KeyL", { altKey: true });
   },
 
   selectItem: (app: AppState, itemTitle: string) => {

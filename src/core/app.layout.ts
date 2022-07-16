@@ -1,12 +1,28 @@
-import { AppState, Item, ItemView } from "./app";
+import { AppState, Item } from "./app";
 import { isRoot } from "./app.movement";
 import { spacings, theme } from "../ui/ui";
 
+const markedSets = new Set<ItemView>();
 export const syncViews = (app: AppState) => {
+  markedSets.clear();
   layout(app, app.itemFocused, (item, gridX, gridY) => {
     const view = app.views.get(item);
-    if (view) updateView(app, view, gridX, gridY);
-    else app.views.set(item, createView(app, item, gridX, gridY));
+
+    if (view) {
+      // Move animation
+      updateView(app, view, gridX, gridY);
+      markedSets.add(view);
+    } else {
+      // Enter animation
+      const newView = createView(app, item, gridX, gridY);
+      app.views.set(item, newView);
+      markedSets.add(newView);
+    }
+  });
+
+  //Exit animation
+  app.views.forEach((view, item) => {
+    if (!markedSets.has(view)) app.views.delete(item);
   });
 };
 
@@ -45,6 +61,19 @@ const hasVisibleChildren = (app: AppState, item: Item) =>
   (item.isOpen && item.children.length > 0) || app.itemFocused == item;
 
 // View related stuff
+
+export type ItemView = {
+  gridX: number;
+  gridY: number;
+  item: Item;
+
+  x: number;
+  y: number;
+  fontSize: number;
+  textColor: string;
+  circleColor: string;
+};
+
 const createView = (
   app: AppState,
   item: Item,

@@ -6,9 +6,6 @@ export const moveItemRight = (app: AppState, item: Item) => {
     const index = parent.children.indexOf(item);
     if (index > 0) {
       const prevItem = parent.children[index - 1];
-      if (!prevItem.isOpen) {
-        prevItem.isOpen = true;
-      }
       removeChildAt(parent, index);
       addChildAt(prevItem, item, prevItem.children.length);
     }
