@@ -1,4 +1,4 @@
-import { spacings, theme } from "./ui";
+import { spacings, theme } from "../core";
 
 // Canvas Infra
 export let xOffset = 0;

@@ -1,6 +1,5 @@
 jest.mock("../../ui/input");
-import { createApp, item, closedItem } from "../index";
-import { spacings } from "../../ui/ui";
+import { createApp, item, closedItem, spacings } from "../index";
 import { exp, simulate } from "./testing";
 
 describe("BASE", () => {

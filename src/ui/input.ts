@@ -1,9 +1,8 @@
-import { AppState, Item } from "../core/app";
+import { AppState, Item, spacings, theme } from "../core";
 import { setFont, xOffset } from "./canvas";
-import { spacings, theme } from "./ui";
 
 export let itemEdited: Item | undefined = undefined;
-type CarretPosition = "start" | "end";
+export type CarretPosition = "start" | "end";
 export const showInput = (app: AppState, position: CarretPosition) => {
   if (app.selectedItem) {
     const input = document.createElement("input");

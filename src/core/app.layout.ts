@@ -1,6 +1,5 @@
-import { AppState, Item } from "./app";
+import { AppState, Item, spacings, theme } from ".";
 import { isRoot } from "./tree";
-import { spacings, theme } from "../ui/ui";
 
 const markedSets = new Set<ItemView>();
 export const syncViews = (app: AppState) => {

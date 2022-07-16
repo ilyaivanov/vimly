@@ -1,7 +1,6 @@
-import { AppState, ItemView, hasChildren } from "../core";
+import { AppState, ItemView, hasChildren, spacings, theme } from "../core";
 import { fillCircle, fillTextAtMiddle, outlineCircle, xOffset } from "./canvas";
 import { itemEdited } from "./input";
-import { spacings, theme } from "./ui";
 
 const { circleRadius, circleLineWidth } = spacings;
 

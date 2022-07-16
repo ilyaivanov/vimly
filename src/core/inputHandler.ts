@@ -1,4 +1,4 @@
-import { itemEdited, showInput } from "../ui/input";
+import { CarretPosition, itemEdited, showInput } from "../ui/input";
 import {
   focusOnParentOfFocused,
   moveDown,
@@ -12,6 +12,7 @@ import {
   removeSelected,
 } from "./app";
 import { syncViews } from "./app.layout";
+import { rotateTheme } from "./themes";
 
 export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
   if (itemEdited) return;
@@ -36,10 +37,10 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
     event.preventDefault();
   } else if (event.code === "KeyI") {
     if (event.shiftKey) createItemNearSelected(app, "inside");
-    else showInput(app, "start");
+    showInputOnNextFrame(app, "start");
     event.preventDefault();
   } else if (event.code === "KeyA" && event.shiftKey) {
-    showInput(app, "end");
+    showInputOnNextFrame(app, "end");
     event.preventDefault();
   } else if (event.code === "KeyX") {
     removeSelected(app);
@@ -47,13 +48,23 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
   } else if (event.code === "KeyR" && !event.ctrlKey) {
     if (app.selectedItem) {
       app.selectedItem.title = "";
-      showInput(app, "start");
+      showInputOnNextFrame(app, "start");
     }
     event.preventDefault();
   } else if (event.code === "KeyO") {
     createItemNearSelected(app, event.shiftKey ? "before" : "after");
+    showInputOnNextFrame(app, "start");
+    event.preventDefault();
+  } else if (event.code === "F1") {
+    rotateTheme();
     event.preventDefault();
   }
 
   syncViews(app);
+};
+
+// I need to wait while syncViews will finish, although I'm calling it after showInputOnNextFrame
+// this is a poor design choice and I need to think how to solve that
+const showInputOnNextFrame = (app: AppState, position: CarretPosition) => {
+  requestAnimationFrame(() => showInput(app, position));
 };

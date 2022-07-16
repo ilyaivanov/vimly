@@ -1,4 +1,3 @@
-import { showInput } from "../ui/input";
 import { ItemView, syncViews } from "./app.layout";
 import {
   removeChildAt,
@@ -128,8 +127,6 @@ export const createItemNearSelected = (
         addChildAt(app.selectedItem.parent, newItem, targetIndex);
     }
     changeSelection(app, newItem);
-
-    showInput(app, "start");
   }
 };
 
