@@ -5,6 +5,8 @@ const defaultItems: Item[] = [
   item("Viztly 2"),
 ];
 
+const USE_LOCAL_STORAGE = true;
+
 export const createApp = (items: Item[]): AppState => {
   const root: Item = item("Root", items);
 
@@ -51,8 +53,12 @@ export const saveToLocalStorage = (tree: AppState) => {
 };
 
 export const loadFromLocalStorage = (): AppState => {
-  const serialized = localStorage.getItem("viztly:v2");
-  return serialized ? parse(serialized) : createApp(defaultItems);
+  if (USE_LOCAL_STORAGE) {
+    const serialized = localStorage.getItem("viztly:v2");
+    return serialized ? parse(serialized) : createApp(defaultItems);
+  } else {
+    return createApp(defaultItems);
+  }
 };
 
 const parse = (serializedTree: string): AppState => {

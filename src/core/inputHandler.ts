@@ -1,4 +1,4 @@
-import { CarretPosition, itemEdited, showInput } from "../ui/input";
+import { itemEdited, showInput } from "../ui/input";
 import {
   focusOnParentOfFocused,
   moveDown,
@@ -37,10 +37,17 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
     event.preventDefault();
   } else if (event.code === "KeyI") {
     if (event.shiftKey) createItemNearSelected(app, "inside");
-    showInputOnNextFrame(app, "start");
+
+    // I need to call sync views before calling showInput, this results in calling syncViews two times during edit
+    // this might be ineffective and can cause problems with animations
+    syncViews(app);
+    showInput(app, "start");
+
     event.preventDefault();
   } else if (event.code === "KeyA" && event.shiftKey) {
-    showInputOnNextFrame(app, "end");
+    syncViews(app);
+    showInput(app, "end");
+
     event.preventDefault();
   } else if (event.code === "KeyX") {
     removeSelected(app);
@@ -48,12 +55,17 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
   } else if (event.code === "KeyR" && !event.ctrlKey) {
     if (app.selectedItem) {
       app.selectedItem.title = "";
-      showInputOnNextFrame(app, "start");
+
+      syncViews(app);
+      showInput(app, "start");
     }
     event.preventDefault();
   } else if (event.code === "KeyO") {
     createItemNearSelected(app, event.shiftKey ? "before" : "after");
-    showInputOnNextFrame(app, "start");
+
+    syncViews(app);
+    showInput(app, "start");
+
     event.preventDefault();
   } else if (event.code === "F1") {
     rotateTheme();
@@ -61,10 +73,4 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
   }
 
   syncViews(app);
-};
-
-// I need to wait while syncViews will finish, although I'm calling it after showInputOnNextFrame
-// this is a poor design choice and I need to think how to solve that
-const showInputOnNextFrame = (app: AppState, position: CarretPosition) => {
-  requestAnimationFrame(() => showInput(app, position));
 };
