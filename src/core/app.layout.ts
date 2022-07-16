@@ -1,5 +1,5 @@
 import { AppState, Item } from "./app";
-import { isRoot } from "./app.movement";
+import { isRoot } from "./tree";
 import { spacings, theme } from "../ui/ui";
 
 const markedSets = new Set<ItemView>();

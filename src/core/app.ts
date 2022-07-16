@@ -1,15 +1,17 @@
 import { showInput } from "../ui/input";
 import { ItemView, syncViews } from "./app.layout";
 import {
+  removeChildAt,
   addChildAt,
   hasChildren,
   isRoot,
-  moveItemDown,
-  moveItemLeft,
-  moveItemRight,
-  moveItemUp,
   removeChild,
-} from "./app.movement";
+  isFocused,
+  getItemAbove,
+  getItemBelow,
+  isOneOfTheParents,
+  getFollowingItem,
+} from "./tree";
 
 export type Item = {
   title: string;
@@ -33,7 +35,7 @@ export const item = (title: string, children: Item[] = []): Item =>
 export const closedItem = (title: string, children: Item[] = []): Item =>
   mapPartialItem({ title, children, isOpen: false });
 
-export const mapPartialItem = (item: Partial<Item> | string): Item => {
+const mapPartialItem = (item: Partial<Item> | string): Item => {
   if (typeof item === "string")
     return { title: item, isOpen: false, children: [] };
   else {
@@ -76,8 +78,6 @@ const focusOnItem = (app: AppState, item: Item | undefined) => {
     app.itemFocused = item;
   }
 };
-
-//Actions
 
 export const moveDown = (app: AppState) =>
   app.selectedItem && changeSelection(app, getItemBelow(app, app.selectedItem));
@@ -145,6 +145,52 @@ export const removeSelected = (app: AppState) => {
   }
 };
 
+// MOVING ITEM ON A TREE
+const moveItemRight = (app: AppState, item: Item) => {
+  const parent = item.parent;
+  if (parent && canItemBeMoved(app, item)) {
+    const index = parent.children.indexOf(item);
+    if (index > 0) {
+      const prevItem = parent.children[index - 1];
+      removeChildAt(parent, index);
+      addChildAt(prevItem, item, prevItem.children.length);
+    }
+  }
+};
+
+const moveItemLeft = (app: AppState, item: Item) => {
+  const parent = item.parent;
+  if (parent && canItemBeMovedLeft(app, item)) {
+    const parentOfParent = parent.parent;
+    if (parentOfParent) {
+      const parentIndex = parentOfParent.children.indexOf(parent);
+      removeChild(parent, item);
+      addChildAt(parentOfParent, item, parentIndex + 1);
+    }
+  }
+};
+
+const moveItemUp = (app: AppState, item: Item) => {
+  const parent = item.parent;
+  if (parent && canItemBeMoved(app, item)) {
+    const index = parent.children.indexOf(item);
+    if (index > 0) {
+      removeChildAt(parent, index);
+      addChildAt(parent, item, index - 1);
+    }
+  }
+};
+
+const moveItemDown = (app: AppState, item: Item) => {
+  const parent = item.parent;
+  if (parent && canItemBeMoved(app, item)) {
+    const index = parent.children.indexOf(item);
+    if (index <= parent.children.length - 1) {
+      removeChildAt(parent, index);
+      addChildAt(parent, item, index + 1);
+    }
+  }
+};
 type MovingDirection = "up" | "down" | "left" | "right";
 const handlers: Record<MovingDirection, typeof moveItemLeft> = {
   down: moveItemDown,
@@ -152,7 +198,6 @@ const handlers: Record<MovingDirection, typeof moveItemLeft> = {
   left: moveItemLeft,
   right: moveItemRight,
 };
-
 export const moveSelectedItem = (
   app: AppState,
   movingDirection: MovingDirection
@@ -164,76 +209,7 @@ export const moveSelectedItem = (
   }
 };
 
-const getItemBelow = (app: AppState, item: Item): Item | undefined =>
-  (item.isOpen && item.children.length > 0) || app.itemFocused == item
-    ? item.children[0]
-    : getFollowingItem(item);
+const canItemBeMoved = (app: AppState, item: Item) => !isFocused(app, item);
 
-const getFollowingItem = (item: Item): Item | undefined => {
-  const followingItem = getFollowingSibling(item);
-  if (followingItem) return followingItem;
-  else {
-    let parent = item.parent;
-    while (parent && isLast(parent)) {
-      parent = parent.parent;
-    }
-    if (parent) return getFollowingSibling(parent);
-  }
-};
-
-const getFollowingSibling = (item: Item): Item | undefined =>
-  getRelativeSibling(item, (currentIndex) => currentIndex + 1);
-
-const getRelativeSibling = (
-  item: Item,
-  getItemIndex: F2<number, number>
-): Item | undefined => {
-  const context = item.parent?.children;
-  if (context) {
-    const index = context.indexOf(item);
-    return context[getItemIndex(index)];
-  }
-};
-
-const getItemAbove = (item: Item): Item | undefined => {
-  const parent = item.parent;
-  if (parent) {
-    const index = parent.children.indexOf(item);
-    if (index > 0) {
-      const previousItem = parent.children[index - 1];
-      if (previousItem.isOpen)
-        return getLastNestedItem(
-          previousItem.children[previousItem.children.length - 1]
-        );
-      return getLastNestedItem(previousItem);
-    } else if (!isRoot(parent)) return parent;
-  }
-};
-const getLastNestedItem = (item: Item): Item => {
-  if (item.isOpen && item.children) {
-    const { children } = item;
-    return getLastNestedItem(children[children.length - 1]);
-  }
-  return item;
-};
-
-const isLast = (item: Item): boolean => !getFollowingSibling(item);
-
-export const forEachChild = (item: Item, cb: A2<Item, Item>) => {
-  const traverse = (children: Item[]) => {
-    children.forEach((c) => {
-      cb(c, item);
-      if (hasChildren(c)) forEachChild(c, cb);
-    });
-  };
-  traverse(item.children);
-};
-
-const isOneOfTheParents = (item: Item, parent: Item) => {
-  let current: Item | undefined = item;
-  while (current) {
-    if (current === parent) return true;
-    current = current.parent;
-  }
-  return false;
-};
+const canItemBeMovedLeft = (app: AppState, item: Item) =>
+  canItemBeMoved(app, item) && !!item.parent;
