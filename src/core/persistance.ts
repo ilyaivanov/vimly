@@ -44,7 +44,7 @@ export const loadFromFile = async (): Promise<AppState> => {
     const t = await fileData.text();
     return parse(t);
   } else {
-    throw new Error("Browser doesn't have showSaveFilePicker");
+    throw new Error("Browser doesn't have showOpenFilePicker");
   }
 };
 
