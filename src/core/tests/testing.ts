@@ -8,6 +8,17 @@ import {
 
 import { onKeyPress } from "../inputHandler";
 
+export const actions = {
+  undo: (app: AppState) => simulate.keydown(app, "KeyZ", { ctrlKey: true }),
+  redo: (app: AppState) =>
+    simulate.keydown(app, "KeyZ", { ctrlKey: true, shiftKey: true }),
+
+  createItemAfterSelected: (app: AppState) => simulate.keydown(app, "KeyO"),
+
+  moveDown: (app: AppState) => simulate.keydown(app, "KeyJ"),
+  removeSelected: (app: AppState) => simulate.keydown(app, "KeyX"),
+};
+
 export const simulate = {
   keydown: (app: AppState, key: string, modifiers?: Partial<KeyboardEvent>) => {
     const event = new KeyboardEvent("keydown", { code: key, ...modifiers });

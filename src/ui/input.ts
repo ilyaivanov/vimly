@@ -57,6 +57,10 @@ export const showInput = (app: AppState, position: CarretPosition) => {
   }
 };
 
+// export const hideInput = () => {
+
+// }
+
 const placeCarretAtStart = (
   input: HTMLInputElement,
   position: CarretPosition

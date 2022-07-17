@@ -9,6 +9,9 @@ export const isRoot = (item: Item) => !item.parent;
 
 export const hasChildren = (item: Item) => item.children.length > 0;
 
+export const getItemIndex = (item: Item) =>
+  item.parent?.children.indexOf(item) || -1;
+
 // Mutate tree
 
 export const removeChildAt = (item: Item, index: number) => {

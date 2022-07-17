@@ -12,7 +12,14 @@ export const createApp = (items: Item[]): AppState => {
 
   const selectedItem = root.children[0];
 
-  const app = { root, views: new Map(), selectedItem, itemFocused: root };
+  const app: AppState = {
+    root,
+    views: new Map(),
+    selectedItem,
+    itemFocused: root,
+    currentHistoryIndex: -1,
+    undoQueue: [],
+  };
 
   return app;
 };

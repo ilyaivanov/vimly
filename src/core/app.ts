@@ -1,4 +1,5 @@
 import { ItemView } from "./app.layout";
+import { Command } from "./inputHandler";
 import {
   removeChildAt,
   addChildAt,
@@ -26,6 +27,9 @@ export type AppState = {
   views: Map<Item, ItemView>;
   selectedItem: Item | undefined;
   itemFocused: Item;
+
+  undoQueue: Command[];
+  currentHistoryIndex: number;
 };
 
 export const item = (title: string, children: Item[] = []): Item =>
@@ -119,13 +123,11 @@ export const createItemNearSelected = (
   }
 };
 
-export const removeSelected = (app: AppState) => {
-  const { selectedItem } = app;
-  if (selectedItem && selectedItem.parent) {
-    const nextItemToSelect =
-      getItemAbove(selectedItem) || getFollowingItem(selectedItem);
+export const removeItem = (app: AppState, item: Item) => {
+  if (item.parent) {
+    const nextItemToSelect = getItemAbove(item) || getFollowingItem(item);
 
-    removeChild(selectedItem.parent, selectedItem);
+    removeChild(item.parent, item);
 
     changeSelection(app, nextItemToSelect);
   }

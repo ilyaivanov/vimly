@@ -9,10 +9,13 @@ import {
   moveSelectedItem,
   focusOnItemSelected,
   createItemNearSelected,
-  removeSelected,
+  removeItem,
+  Item,
+  changeSelection,
 } from "./app";
 import { syncViews } from "./app.layout";
 import { rotateTheme } from "./themes";
+import { addChildAt, getItemIndex } from "./tree";
 
 export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
   if (itemEdited) return;
@@ -49,8 +52,8 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
     showInput(app, "end");
 
     event.preventDefault();
-  } else if (event.code === "KeyX") {
-    removeSelected(app);
+  } else if (event.code === "KeyX" && app.selectedItem) {
+    dispatchCommand(app, createRemoveItemCommand(app.selectedItem));
     event.preventDefault();
   } else if (event.code === "KeyR" && !event.ctrlKey) {
     if (app.selectedItem) {
@@ -70,7 +73,106 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
   } else if (event.code === "F1") {
     rotateTheme();
     event.preventDefault();
+  } else if (event.code === "KeyZ" && event.ctrlKey && event.shiftKey) {
+    redoCommand(app);
+    event.preventDefault();
+  } else if (event.code === "KeyZ" && event.ctrlKey) {
+    undoLastCommand(app);
+    event.preventDefault();
   }
 
   syncViews(app);
+};
+
+// Commands
+// - Remove
+// - Rename
+// - Create
+// - Move
+const createRemoveItemCommand = (itemRemoved: Item): RemoveCommand => ({
+  type: "RemoveSelectedItem",
+  itemRemoved,
+  wasAtIndex: getItemIndex(itemRemoved),
+});
+
+const createCreateItemCommand = (app: AppState): CreateCommand => ({
+  type: "CreateItem",
+
+  previouslySelectedItem: app.selectedItem,
+  item,
+});
+
+type RemoveCommand = {
+  type: "RemoveSelectedItem";
+  itemRemoved: Item;
+  wasAtIndex: number;
+};
+
+type CreateCommand = {
+  type: "CreateItem";
+  item: Item;
+  position: "before" | "after" | "inside";
+  previouslySelectedItem?: Item;
+};
+
+export type Command = RemoveCommand | CreateCommand;
+
+//
+//
+//
+//
+//
+//
+
+const handleCommand = (app: AppState, command: Command) => {
+  if (command.type === "RemoveSelectedItem")
+    removeItem(app, command.itemRemoved);
+};
+
+const handleUndoCommand = (app: AppState, command: Command) => {
+  if (command.type === "RemoveSelectedItem") undoRemove(app, command);
+};
+
+const undoRemove = (
+  app: AppState,
+  { itemRemoved, wasAtIndex }: RemoveCommand
+) => {
+  if (itemRemoved.parent)
+    addChildAt(itemRemoved.parent, itemRemoved, wasAtIndex);
+  changeSelection(app, itemRemoved);
+};
+
+//
+//
+//
+//
+//
+//
+
+const dispatchCommand = (app: AppState, command: Command) => {
+  handleCommand(app, command);
+
+  //remove all items after currentHistoryIndex
+
+  console.trace();
+  app.undoQueue.length; //?
+  app.undoQueue.push(command);
+  app.currentHistoryIndex += 1;
+};
+
+const undoLastCommand = (app: AppState) => {
+  const command = app.undoQueue[app.currentHistoryIndex];
+
+  if (command) {
+    handleUndoCommand(app, command);
+    app.currentHistoryIndex -= 1;
+  }
+};
+
+const redoCommand = (app: AppState) => {
+  if (app.currentHistoryIndex < app.undoQueue.length - 1) {
+    app.currentHistoryIndex += 1;
+    const upcomingCommand = app.undoQueue[app.currentHistoryIndex];
+    if (upcomingCommand) handleCommand(app, upcomingCommand);
+  }
 };
