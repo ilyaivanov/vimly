@@ -1,18 +1,12 @@
 import { AppState, Item } from ".";
 
-//Query tree
-
-export const isFocused = (app: AppState, item: Item) =>
-  app.itemFocused === item;
-
-export const isRoot = (item: Item) => !item.parent;
-
-export const hasChildren = (item: Item) => item.children.length > 0;
-
-export const getItemIndex = (item: Item) =>
-  item.parent?.children.indexOf(item) || -1;
-
+//
 // Mutate tree
+//
+
+const updateIsOpenFlag = (item: Item) => {
+  item.isOpen = item.children.length !== 0;
+};
 
 export const removeChildAt = (item: Item, index: number) => {
   item.children.splice(index, 1);
@@ -28,6 +22,25 @@ export const addChildAt = (parent: Item, item: Item, index: number) => {
   parent.children.splice(index, 0, item);
   item.parent = parent;
   updateIsOpenFlag(parent);
+};
+
+//
+// Query tree
+//
+
+export const isFocused = (app: AppState, item: Item) =>
+  app.itemFocused === item;
+
+export const isRoot = (item: Item) => !item.parent;
+
+export const hasChildren = (item: Item) => item.children.length > 0;
+
+export const getItemIndex = (item: Item) => {
+  if (!item.parent)
+    throw new Error(
+      "Trying to get item index without a parent. Item title: " + item.title
+    );
+  return item.parent.children.indexOf(item);
 };
 
 export const forEachChild = (item: Item, cb: A2<Item, Item>) => {
@@ -104,7 +117,3 @@ const getLastNestedItem = (item: Item): Item => {
 };
 
 const isLast = (item: Item): boolean => !getFollowingSibling(item);
-
-const updateIsOpenFlag = (item: Item) => {
-  item.isOpen = item.children.length !== 0;
-};

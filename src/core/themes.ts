@@ -4,7 +4,7 @@ const dark = {
   titleFont: "#FFFFFF", //"#FFFFFF",
   font: "#CBCBCB", //"#FFFFFF",
   firstLevelFont: "#FFFFFF", //"#FFFFFF",
-  selected: "#73C991", //"#B1E847",
+  selected: "#73C991", //"#B1E847", rgb(62, 166, 255)
   gridPoint: "#3C413D",
   filledCircle: "#D1D2D3",
   centerColor: "#2C392F", // #2C392F

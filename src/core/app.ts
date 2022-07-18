@@ -1,5 +1,5 @@
 import { ItemView } from "./app.layout";
-import { Command } from "./inputHandler";
+import { UndoState } from "./inputHandler";
 import {
   removeChildAt,
   addChildAt,
@@ -28,8 +28,7 @@ export type AppState = {
   selectedItem: Item | undefined;
   itemFocused: Item;
 
-  undoQueue: Command[];
-  currentHistoryIndex: number;
+  undo: UndoState;
 };
 
 export const item = (title: string, children: Item[] = []): Item =>
@@ -38,7 +37,7 @@ export const item = (title: string, children: Item[] = []): Item =>
 export const closedItem = (title: string, children: Item[] = []): Item =>
   mapPartialItem({ title, children, isOpen: false });
 
-const mapPartialItem = (item: Partial<Item> | string): Item => {
+export const mapPartialItem = (item: Partial<Item> | string): Item => {
   if (typeof item === "string")
     return { title: item, isOpen: false, children: [] };
   else {
@@ -104,12 +103,11 @@ export const changeSelection = (app: AppState, item: Item | undefined) => {
 
 export const createItemNearSelected = (
   app: AppState,
+  newItem: Item,
   position: "before" | "after" | "inside"
 ) => {
   const context = app.selectedItem?.parent?.children;
   if (context && app.selectedItem) {
-    const newItem = mapPartialItem("");
-
     if (position === "inside") {
       addChildAt(app.selectedItem, newItem, 0);
     } else {

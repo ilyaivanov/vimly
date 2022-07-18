@@ -12,6 +12,7 @@ import {
   removeItem,
   Item,
   changeSelection,
+  mapPartialItem,
 } from "./app";
 import { syncViews } from "./app.layout";
 import { rotateTheme } from "./themes";
@@ -39,7 +40,8 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
 
     event.preventDefault();
   } else if (event.code === "KeyI") {
-    if (event.shiftKey) createItemNearSelected(app, "inside");
+    if (event.shiftKey)
+      dispatchCommand(app, createCreateItemCommand(app, "inside"));
 
     // I need to call sync views before calling showInput, this results in calling syncViews two times during edit
     // this might be ineffective and can cause problems with animations
@@ -64,7 +66,10 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
     }
     event.preventDefault();
   } else if (event.code === "KeyO") {
-    createItemNearSelected(app, event.shiftKey ? "before" : "after");
+    dispatchCommand(
+      app,
+      createCreateItemCommand(app, event.shiftKey ? "before" : "after")
+    );
 
     syncViews(app);
     showInput(app, "start");
@@ -85,21 +90,25 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
 };
 
 // Commands
-// - Remove
+// - Remove - done
 // - Rename
-// - Create
+// - Create - done
 // - Move
+
 const createRemoveItemCommand = (itemRemoved: Item): RemoveCommand => ({
   type: "RemoveSelectedItem",
   itemRemoved,
   wasAtIndex: getItemIndex(itemRemoved),
 });
 
-const createCreateItemCommand = (app: AppState): CreateCommand => ({
+const createCreateItemCommand = (
+  app: AppState,
+  position: CreatePosition
+): CreateCommand => ({
   type: "CreateItem",
-
   previouslySelectedItem: app.selectedItem,
-  item,
+  item: mapPartialItem(""),
+  position,
 });
 
 type RemoveCommand = {
@@ -108,10 +117,11 @@ type RemoveCommand = {
   wasAtIndex: number;
 };
 
+type CreatePosition = "before" | "after" | "inside";
 type CreateCommand = {
   type: "CreateItem";
   item: Item;
-  position: "before" | "after" | "inside";
+  position: CreatePosition;
   previouslySelectedItem?: Item;
 };
 
@@ -125,12 +135,19 @@ export type Command = RemoveCommand | CreateCommand;
 //
 
 const handleCommand = (app: AppState, command: Command) => {
-  if (command.type === "RemoveSelectedItem")
+  if (command.type === "RemoveSelectedItem") {
     removeItem(app, command.itemRemoved);
+  }
+  if (command.type === "CreateItem")
+    createItemNearSelected(app, command.item, command.position);
 };
 
 const handleUndoCommand = (app: AppState, command: Command) => {
   if (command.type === "RemoveSelectedItem") undoRemove(app, command);
+  if (command.type === "CreateItem") {
+    removeItem(app, command.item);
+    changeSelection(app, command.previouslySelectedItem);
+  }
 };
 
 const undoRemove = (
@@ -149,30 +166,38 @@ const undoRemove = (
 //
 //
 
+export const initialUndoState = () => ({
+  currentHistoryIndex: -1,
+  undoQueue: [] as Command[],
+});
+
+export type UndoState = ReturnType<typeof initialUndoState>;
+
 const dispatchCommand = (app: AppState, command: Command) => {
   handleCommand(app, command);
 
-  //remove all items after currentHistoryIndex
-
-  console.trace();
-  app.undoQueue.length; //?
-  app.undoQueue.push(command);
-  app.currentHistoryIndex += 1;
+  const { undo } = app;
+  undo.undoQueue.splice(undo.currentHistoryIndex + 1);
+  undo.undoQueue.push(command);
+  undo.currentHistoryIndex += 1;
 };
 
 const undoLastCommand = (app: AppState) => {
-  const command = app.undoQueue[app.currentHistoryIndex];
+  const { undo } = app;
+
+  const command = undo.undoQueue[undo.currentHistoryIndex];
 
   if (command) {
     handleUndoCommand(app, command);
-    app.currentHistoryIndex -= 1;
+    undo.currentHistoryIndex -= 1;
   }
 };
 
 const redoCommand = (app: AppState) => {
-  if (app.currentHistoryIndex < app.undoQueue.length - 1) {
-    app.currentHistoryIndex += 1;
-    const upcomingCommand = app.undoQueue[app.currentHistoryIndex];
+  const { undo } = app;
+  if (undo.currentHistoryIndex < undo.undoQueue.length - 1) {
+    undo.currentHistoryIndex += 1;
+    const upcomingCommand = undo.undoQueue[undo.currentHistoryIndex];
     if (upcomingCommand) handleCommand(app, upcomingCommand);
   }
 };

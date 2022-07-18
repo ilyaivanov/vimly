@@ -42,15 +42,32 @@ it("when removing an item and pressing undo that items appears", () => {
   exp.firstLevelItems(app, ["Item 1", "Item 2", "Item 3"]);
 });
 
-fit("when removing an item, pressing undo, then creating a new item clears redo stack", () => {
+it("order of actions when undoing the operations preserves items order", () => {
   const app = createApp([item("Item 1"), item("Item 2"), item("Item 3")]);
 
-  actions.moveDown(app);
   actions.removeSelected(app);
+  exp.firstLevelItems(app, ["Item 2", "Item 3"]);
 
   actions.undo(app);
-  actions.createItemAfterSelected(app);
-  exp.firstLevelItems(app, ["Item 1", "Item 2", "", "Item 3"]);
-  actions.redo(app);
-  exp.firstLevelItems(app, ["Item 1", "Item 2", "", "Item 3"]);
+  exp.firstLevelItems(app, ["Item 1", "Item 2", "Item 3"]);
+
+  actions.moveDown(app);
+
+  actions.removeSelected(app);
+  exp.firstLevelItems(app, ["Item 1", "Item 3"]);
+
+  actions.undo(app);
+  exp.firstLevelItems(app, ["Item 1", "Item 2", "Item 3"]);
+});
+
+it("creating a node is an undoable operation with saved selected item", () => {
+  const app = createApp([item("Item 1"), item("Item 2")]);
+
+  actions.moveDown(app);
+  actions.createItemBeforeSelected(app);
+  exp.firstLevelItems(app, ["Item 1", "", "Item 2"]);
+
+  actions.undo(app);
+  exp.firstLevelItems(app, ["Item 1", "Item 2"]);
+  exp.selectedItemTitle(app, "Item 2");
 });

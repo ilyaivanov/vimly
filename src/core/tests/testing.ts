@@ -14,6 +14,8 @@ export const actions = {
     simulate.keydown(app, "KeyZ", { ctrlKey: true, shiftKey: true }),
 
   createItemAfterSelected: (app: AppState) => simulate.keydown(app, "KeyO"),
+  createItemBeforeSelected: (app: AppState) =>
+    simulate.keydown(app, "KeyO", { shiftKey: true }),
 
   moveDown: (app: AppState) => simulate.keydown(app, "KeyJ"),
   removeSelected: (app: AppState) => simulate.keydown(app, "KeyX"),

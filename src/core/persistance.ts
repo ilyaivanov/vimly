@@ -1,4 +1,5 @@
 import { AppState, Item, item } from ".";
+import { initialUndoState } from "./inputHandler";
 
 const defaultItems: Item[] = [
   item("Viztly 1", [item("Viztly 1.1"), item("Viztly 1.2")]),
@@ -17,8 +18,7 @@ export const createApp = (items: Item[]): AppState => {
     views: new Map(),
     selectedItem,
     itemFocused: root,
-    currentHistoryIndex: -1,
-    undoQueue: [],
+    undo: initialUndoState(),
   };
 
   return app;
