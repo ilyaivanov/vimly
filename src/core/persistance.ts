@@ -1,5 +1,5 @@
 import { AppState, Item, item } from ".";
-import { initialUndoState } from "./inputHandler";
+import { initialUndoState } from "./commands";
 
 const defaultItems: Item[] = [
   item("Viztly 1", [item("Viztly 1.1"), item("Viztly 1.2")]),

@@ -1,5 +1,5 @@
 import { ItemView } from "./app.layout";
-import { UndoState } from "./inputHandler";
+import { UndoState } from "./commands";
 import {
   removeChildAt,
   addChildAt,
@@ -177,7 +177,7 @@ const moveItemDown = (app: AppState, item: Item) => {
     }
   }
 };
-type MovingDirection = "up" | "down" | "left" | "right";
+export type MovingDirection = "up" | "down" | "left" | "right";
 const handlers: Record<MovingDirection, typeof moveItemLeft> = {
   down: moveItemDown,
   up: moveItemUp,
@@ -186,14 +186,9 @@ const handlers: Record<MovingDirection, typeof moveItemLeft> = {
 };
 export const moveSelectedItem = (
   app: AppState,
+  item: Item,
   movingDirection: MovingDirection
-) => {
-  const { selectedItem } = app;
-
-  if (selectedItem) {
-    handlers[movingDirection](app, selectedItem);
-  }
-};
+) => handlers[movingDirection](app, item);
 
 const canItemBeMoved = (app: AppState, item: Item) => !isFocused(app, item);
 

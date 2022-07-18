@@ -71,3 +71,15 @@ it("creating a node is an undoable operation with saved selected item", () => {
   exp.firstLevelItems(app, ["Item 1", "Item 2"]);
   exp.selectedItemTitle(app, "Item 2");
 });
+
+it("creating a node is an undoable operation with saved selected item", () => {
+  const app = createApp([item("Item 1"), item("Item 2")]);
+
+  actions.moveDown(app);
+  actions.createItemBeforeSelected(app);
+  exp.firstLevelItems(app, ["Item 1", "", "Item 2"]);
+
+  actions.undo(app);
+  exp.firstLevelItems(app, ["Item 1", "Item 2"]);
+  exp.selectedItemTitle(app, "Item 2");
+});
