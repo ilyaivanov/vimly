@@ -1,9 +1,14 @@
 import { AppState, Item, spacings, theme } from "../core";
+import { renameSelected } from "../core/commands";
 import { setFont, xOffset } from "./canvas";
 
 export let itemEdited: Item | undefined = undefined;
 export type CarretPosition = "start" | "end";
-export const showInput = (app: AppState, position: CarretPosition) => {
+export const showInput = (
+  app: AppState,
+  text: string,
+  position: CarretPosition
+) => {
   if (app.selectedItem) {
     const input = document.createElement("input");
     input.type = "text";
@@ -32,13 +37,13 @@ export const showInput = (app: AppState, position: CarretPosition) => {
 
       document.body.appendChild(input);
 
-      input.value = app.selectedItem.title;
+      input.value = text;
       itemEdited = app.selectedItem;
       input.focus();
       placeCarretAtStart(input, position);
 
       const finishEdit = () => {
-        if (app.selectedItem) app.selectedItem.title = input.value;
+        renameSelected(app, input.value);
         input.remove();
 
         itemEdited = undefined;

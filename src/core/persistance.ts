@@ -1,4 +1,5 @@
 import { AppState, Item, item } from ".";
+import { initialUndoState } from "./commands";
 
 const defaultItems: Item[] = [
   item("Viztly 1", [item("Viztly 1.1"), item("Viztly 1.2")]),
@@ -12,7 +13,13 @@ export const createApp = (items: Item[]): AppState => {
 
   const selectedItem = root.children[0];
 
-  const app = { root, views: new Map(), selectedItem, itemFocused: root };
+  const app: AppState = {
+    root,
+    views: new Map(),
+    selectedItem,
+    itemFocused: root,
+    undo: initialUndoState(),
+  };
 
   return app;
 };

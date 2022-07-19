@@ -1,4 +1,5 @@
 import { ItemView } from "./app.layout";
+import { UndoState } from "./commands";
 import {
   removeChildAt,
   addChildAt,
@@ -26,6 +27,8 @@ export type AppState = {
   views: Map<Item, ItemView>;
   selectedItem: Item | undefined;
   itemFocused: Item;
+
+  undo: UndoState;
 };
 
 export const item = (title: string, children: Item[] = []): Item =>
@@ -34,7 +37,7 @@ export const item = (title: string, children: Item[] = []): Item =>
 export const closedItem = (title: string, children: Item[] = []): Item =>
   mapPartialItem({ title, children, isOpen: false });
 
-const mapPartialItem = (item: Partial<Item> | string): Item => {
+export const mapPartialItem = (item: Partial<Item> | string): Item => {
   if (typeof item === "string")
     return { title: item, isOpen: false, children: [] };
   else {
@@ -100,12 +103,11 @@ export const changeSelection = (app: AppState, item: Item | undefined) => {
 
 export const createItemNearSelected = (
   app: AppState,
+  newItem: Item,
   position: "before" | "after" | "inside"
 ) => {
   const context = app.selectedItem?.parent?.children;
   if (context && app.selectedItem) {
-    const newItem = mapPartialItem("");
-
     if (position === "inside") {
       addChildAt(app.selectedItem, newItem, 0);
     } else {
@@ -119,13 +121,11 @@ export const createItemNearSelected = (
   }
 };
 
-export const removeSelected = (app: AppState) => {
-  const { selectedItem } = app;
-  if (selectedItem && selectedItem.parent) {
-    const nextItemToSelect =
-      getItemAbove(selectedItem) || getFollowingItem(selectedItem);
+export const removeItem = (app: AppState, item: Item) => {
+  if (item.parent) {
+    const nextItemToSelect = getItemAbove(item) || getFollowingItem(item);
 
-    removeChild(selectedItem.parent, selectedItem);
+    removeChild(item.parent, item);
 
     changeSelection(app, nextItemToSelect);
   }
@@ -177,7 +177,7 @@ const moveItemDown = (app: AppState, item: Item) => {
     }
   }
 };
-type MovingDirection = "up" | "down" | "left" | "right";
+export type MovingDirection = "up" | "down" | "left" | "right";
 const handlers: Record<MovingDirection, typeof moveItemLeft> = {
   down: moveItemDown,
   up: moveItemUp,
@@ -186,14 +186,9 @@ const handlers: Record<MovingDirection, typeof moveItemLeft> = {
 };
 export const moveSelectedItem = (
   app: AppState,
+  item: Item,
   movingDirection: MovingDirection
-) => {
-  const { selectedItem } = app;
-
-  if (selectedItem) {
-    handlers[movingDirection](app, selectedItem);
-  }
-};
+) => handlers[movingDirection](app, item);
 
 const canItemBeMoved = (app: AppState, item: Item) => !isFocused(app, item);
 
