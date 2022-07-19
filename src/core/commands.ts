@@ -10,169 +10,139 @@ import {
 } from "./app";
 import { addChildAt, getItemIndex } from "./tree";
 
-//
-// REMOVE ITEM
-//
-
-type RemoveCommand = {
-  type: "RemoveSelectedItem";
-  itemRemoved: Item;
-  wasAtIndex: number;
-};
-
-export const removeItemCommand = (app: AppState, itemRemoved: Item) =>
-  dispatchCommand(app, {
-    type: "RemoveSelectedItem",
-    itemRemoved,
-    wasAtIndex: getItemIndex(itemRemoved),
-  });
-
-const undoRemove = (
-  app: AppState,
-  { itemRemoved, wasAtIndex }: RemoveCommand
-) => {
-  if (itemRemoved.parent)
-    addChildAt(itemRemoved.parent, itemRemoved, wasAtIndex);
-  changeSelection(app, itemRemoved);
-};
-
-//
-// RENAME ITEM
-//
-
-type RenameCommand = {
-  type: "RenameItem";
-  item: Item;
-  oldName: string;
-  newName: string;
-};
-
-export const renameItemCommand = (app: AppState, item: Item, newName: string) =>
-  dispatchCommand(app, {
-    type: "RenameItem",
-    item,
-    oldName: item.title,
-    newName,
-  });
-
-const undoRename = (app: AppState, { item, oldName }: RenameCommand) => {
-  item.title = oldName;
-};
-
-const doRename = (app: AppState, { item, newName }: RenameCommand) => {
-  item.title = newName;
-};
-
-//
-// CREATE ITEM
-//
 type CreatePosition = "before" | "after" | "inside";
-type CreateCommand = {
-  type: "CreateItem";
-  item: Item;
-  position: CreatePosition;
-  previouslySelectedItem?: Item;
+type Commands = {
+  remove: {
+    itemRemoved: Item;
+    wasAtIndex: number;
+  };
+  rename: {
+    item: Item;
+    oldName: string;
+    newName: string;
+  };
+  create: {
+    item: Item;
+    position: CreatePosition;
+    previouslySelectedItem?: Item;
+  };
+  move: {
+    movingDirection: MovingDirection;
+    item: Item;
+    currentParent: Item;
+    currentPosition: number;
+  };
 };
 
-export const createItemCommand = (app: AppState, position: CreatePosition) =>
-  dispatchCommand(app, {
-    type: "CreateItem",
-    previouslySelectedItem: app.selectedItem,
+type CommandHandlers = {
+  [CommandType in keyof Commands]: A2<AppState, Commands[CommandType]>;
+};
+
+const doHandlers: CommandHandlers = {
+  rename: (app, { item, newName }) => {
+    item.title = newName;
+  },
+  remove: (app, command) => {
+    removeItem(app, command.itemRemoved);
+  },
+  create: (app, command) => {
+    createItemNearSelected(app, command.item, command.position);
+  },
+  move: (app, { item, movingDirection }) => {
+    moveSelectedItem(app, item, movingDirection);
+  },
+};
+
+const undoHandlers: CommandHandlers = {
+  rename: (app, { item, oldName }) => {
+    item.title = oldName;
+  },
+  remove: (app, { itemRemoved, wasAtIndex }) => {
+    if (itemRemoved.parent)
+      addChildAt(itemRemoved.parent, itemRemoved, wasAtIndex);
+    changeSelection(app, itemRemoved);
+  },
+  create: (app, command) => {
+    removeItem(app, command.item);
+    changeSelection(app, command.previouslySelectedItem);
+  },
+  move: (app, { item, currentParent, currentPosition }) => {
+    removeItem(app, item);
+    addChildAt(currentParent, item, currentPosition);
+  },
+};
+
+export const create = (app: AppState, position: CreatePosition) =>
+  app.selectedItem &&
+  dispatch(app, "create", {
     item: mapPartialItem(""),
     position,
+    previouslySelectedItem: app.selectedItem,
   });
 
-//
-// MOVE ITEM
-//
+export const removeSelected = (app: AppState) =>
+  app.selectedItem &&
+  dispatch(app, "remove", {
+    itemRemoved: app.selectedItem,
+    wasAtIndex: getItemIndex(app.selectedItem),
+  });
 
-type MoveCommand = {
-  type: "MoveItem";
-  movingDirection: MovingDirection;
-  item: Item;
-  currentParent: Item;
-  currentPosition: number;
-};
-
-export const moveSelectedItemCommand = (
-  app: AppState,
-  movingDirection: MovingDirection
-) =>
+export const moveSelected = (app: AppState, movingDirection: MovingDirection) =>
   app.selectedItem &&
   app.selectedItem.parent &&
-  dispatchCommand(app, {
-    type: "MoveItem",
+  dispatch(app, "move", {
     item: app.selectedItem,
     currentParent: app.selectedItem.parent,
     currentPosition: getItemIndex(app.selectedItem),
     movingDirection,
   });
 
-const undoMove = (app: AppState, command: MoveCommand) => {
-  removeItem(app, command.item);
-  addChildAt(command.currentParent, command.item, command.currentPosition);
-};
+export const renameSelected = (app: AppState, title: string) =>
+  app.selectedItem &&
+  dispatch(app, "rename", {
+    item: app.selectedItem,
+    newName: title,
+    oldName: app.selectedItem.title,
+  });
 
-const doMove = (app: AppState, command: MoveCommand) => {
-  moveSelectedItem(app, command.item, command.movingDirection);
+type SerializedCommand = {
+  commandName: string;
+  payload: unknown;
 };
-
-//
-//
-//
-//
-//
-//
-
-const handleCommand = (app: AppState, command: Command) => {
-  if (command.type === "RemoveSelectedItem")
-    removeItem(app, command.itemRemoved);
-  else if (command.type === "CreateItem")
-    createItemNearSelected(app, command.item, command.position);
-  else if (command.type === "RenameItem") doRename(app, command);
-  else if (command.type === "MoveItem") doMove(app, command);
-  else assumeNever(command);
-};
-
-const handleUndoCommand = (app: AppState, command: Command) => {
-  if (command.type === "RemoveSelectedItem") undoRemove(app, command);
-  else if (command.type === "CreateItem") {
-    removeItem(app, command.item);
-    changeSelection(app, command.previouslySelectedItem);
-  } else if (command.type === "RenameItem") undoRename(app, command);
-  else if (command.type === "MoveItem") undoMove(app, command);
-  else assumeNever(command);
-};
-
-const assumeNever = (e: never) => {
-  process.env.NODE_ENV !== "production" && console.error(e);
-};
-//
-//
-//
-//
-//
-//
 
 export const initialUndoState = () => ({
   currentHistoryIndex: -1,
-  undoQueue: [] as Command[],
+  undoQueue: [] as SerializedCommand[],
 });
-export type Command =
-  | RemoveCommand
-  | CreateCommand
-  | RenameCommand
-  | MoveCommand;
+
 export type UndoState = ReturnType<typeof initialUndoState>;
 
-const dispatchCommand = (app: AppState, command: Command) => {
-  handleCommand(app, command);
+const dispatch = <T extends keyof Commands>(
+  app: AppState,
+  commandName: T,
+  payload: Commands[T]
+) => {
+  performCommand(app, commandName, payload);
 
   const { undo } = app;
   undo.undoQueue.splice(undo.currentHistoryIndex + 1);
-  undo.undoQueue.push(command);
+
+  undo.undoQueue.push({ commandName, payload });
+
   undo.currentHistoryIndex += 1;
 };
+
+const performCommand = <T extends keyof Commands>(
+  app: AppState,
+  commandName: T,
+  payload: Commands[T]
+) => doHandlers[commandName](app, payload);
+
+const undoCommand = <T extends keyof Commands>(
+  app: AppState,
+  commandName: T,
+  payload: Commands[T]
+) => undoHandlers[commandName](app, payload);
 
 export const undo = (app: AppState) => {
   const { undo } = app;
@@ -180,7 +150,10 @@ export const undo = (app: AppState) => {
   const command = undo.undoQueue[undo.currentHistoryIndex];
 
   if (command) {
-    handleUndoCommand(app, command);
+    const { commandName, payload } = command;
+
+    // Need better typings for undoQueue
+    undoCommand(app, commandName as keyof Commands, payload as never);
     undo.currentHistoryIndex -= 1;
   }
 };
@@ -190,6 +163,11 @@ export const redo = (app: AppState) => {
   if (undo.currentHistoryIndex < undo.undoQueue.length - 1) {
     undo.currentHistoryIndex += 1;
     const upcomingCommand = undo.undoQueue[undo.currentHistoryIndex];
-    if (upcomingCommand) handleCommand(app, upcomingCommand);
+    if (upcomingCommand) {
+      const { commandName, payload } = upcomingCommand;
+
+      // Need better typings for undoQueue
+      performCommand(app, commandName as keyof Commands, payload as never);
+    }
   }
 };

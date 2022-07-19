@@ -1,5 +1,5 @@
 import { AppState, Item, spacings, theme } from "../core";
-import { renameItemCommand } from "../core/commands";
+import { renameSelected } from "../core/commands";
 import { setFont, xOffset } from "./canvas";
 
 export let itemEdited: Item | undefined = undefined;
@@ -43,8 +43,7 @@ export const showInput = (
       placeCarretAtStart(input, position);
 
       const finishEdit = () => {
-        if (app.selectedItem)
-          renameItemCommand(app, app.selectedItem, input.value);
+        renameSelected(app, input.value);
         input.remove();
 
         itemEdited = undefined;
