@@ -62,10 +62,6 @@ export const showInput = (
   }
 };
 
-// export const hideInput = () => {
-
-// }
-
 const placeCarretAtStart = (
   input: HTMLInputElement,
   position: CarretPosition

@@ -10,67 +10,12 @@ import {
 } from "./app";
 import { addChildAt, getItemIndex } from "./tree";
 
-type CreatePosition = "before" | "after" | "inside";
-type Commands = {
-  remove: {
-    itemRemoved: Item;
-    wasAtIndex: number;
-  };
-  rename: {
-    item: Item;
-    oldName: string;
-    newName: string;
-  };
-  create: {
-    item: Item;
-    position: CreatePosition;
-    previouslySelectedItem?: Item;
-  };
-  move: {
-    movingDirection: MovingDirection;
-    item: Item;
-    currentParent: Item;
-    currentPosition: number;
-  };
-};
+export const initialUndoState = () => ({
+  currentHistoryIndex: -1,
+  undoQueue: [] as SerializedCommand[],
+});
 
-type CommandHandlers = {
-  [CommandType in keyof Commands]: A2<AppState, Commands[CommandType]>;
-};
-
-const doHandlers: CommandHandlers = {
-  rename: (app, { item, newName }) => {
-    item.title = newName;
-  },
-  remove: (app, command) => {
-    removeItem(app, command.itemRemoved);
-  },
-  create: (app, command) => {
-    createItemNearSelected(app, command.item, command.position);
-  },
-  move: (app, { item, movingDirection }) => {
-    moveSelectedItem(app, item, movingDirection);
-  },
-};
-
-const undoHandlers: CommandHandlers = {
-  rename: (app, { item, oldName }) => {
-    item.title = oldName;
-  },
-  remove: (app, { itemRemoved, wasAtIndex }) => {
-    if (itemRemoved.parent)
-      addChildAt(itemRemoved.parent, itemRemoved, wasAtIndex);
-    changeSelection(app, itemRemoved);
-  },
-  create: (app, command) => {
-    removeItem(app, command.item);
-    changeSelection(app, command.previouslySelectedItem);
-  },
-  move: (app, { item, currentParent, currentPosition }) => {
-    removeItem(app, item);
-    addChildAt(currentParent, item, currentPosition);
-  },
-};
+export type UndoState = ReturnType<typeof initialUndoState>;
 
 export const create = (app: AppState, position: CreatePosition) =>
   app.selectedItem &&
@@ -105,17 +50,86 @@ export const renameSelected = (app: AppState, title: string) =>
     oldName: app.selectedItem.title,
   });
 
+type CreatePosition = "before" | "after" | "inside";
+type Commands = {
+  remove: {
+    itemRemoved: Item;
+    wasAtIndex: number;
+  };
+  rename: {
+    item: Item;
+    oldName: string;
+    newName: string;
+  };
+  create: {
+    item: Item;
+    position: CreatePosition;
+    previouslySelectedItem?: Item;
+  };
+  move: {
+    movingDirection: MovingDirection;
+    item: Item;
+    currentParent: Item;
+    currentPosition: number;
+  };
+  select: {
+    currentItem: Item;
+    nextItem: Item;
+  };
+};
+
+type CommandHandlers = {
+  [CommandType in keyof Commands]: A2<AppState, Commands[CommandType]>;
+};
+
+const doHandlers: CommandHandlers = {
+  rename: (app, { item, newName }) => {
+    item.title = newName;
+  },
+  remove: (app, command) => {
+    removeItem(app, command.itemRemoved);
+  },
+  create: (app, command) => {
+    createItemNearSelected(app, command.item, command.position);
+  },
+  move: (app, { item, movingDirection }) => {
+    moveSelectedItem(app, item, movingDirection);
+  },
+  select: (app, { nextItem }) => {
+    changeSelection(app, nextItem);
+  },
+};
+
+const undoHandlers: CommandHandlers = {
+  rename: (app, { item, oldName }) => {
+    item.title = oldName;
+  },
+  remove: (app, { itemRemoved, wasAtIndex }) => {
+    if (itemRemoved.parent)
+      addChildAt(itemRemoved.parent, itemRemoved, wasAtIndex);
+    changeSelection(app, itemRemoved);
+  },
+  create: (app, command) => {
+    removeItem(app, command.item);
+    changeSelection(app, command.previouslySelectedItem);
+  },
+  move: (app, { item, currentParent, currentPosition }) => {
+    removeItem(app, item);
+    addChildAt(currentParent, item, currentPosition);
+  },
+  select: (app, { currentItem }) => {
+    changeSelection(app, currentItem);
+  },
+};
+
+//
+// Infrastructure
+//
+
 type SerializedCommand = {
   commandName: string;
   payload: unknown;
 };
-
-export const initialUndoState = () => ({
-  currentHistoryIndex: -1,
-  undoQueue: [] as SerializedCommand[],
-});
-
-export type UndoState = ReturnType<typeof initialUndoState>;
 
 const dispatch = <T extends keyof Commands>(
   app: AppState,
