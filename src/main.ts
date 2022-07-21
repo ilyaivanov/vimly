@@ -3,7 +3,7 @@ import { drawApp } from "./ui/draw";
 import { initCanvas, setOnResizeCb } from "./ui/canvas";
 import { onKeyPress, syncViews } from "./core";
 import { loadFromFile, saveToFile } from "./core/persistance";
-import { hideSidebar, setOnLeftResizeCb } from "./ui/leftSidebar";
+import { hideSidebar, setOnDraw } from "./ui/leftSidebar";
 import { changeSelection, focusOnItem } from "./core/app";
 
 initCanvas();
@@ -46,8 +46,6 @@ document.addEventListener("keydown", async (event) => {
 
 drawApp(app);
 
-setOnResizeCb(() => {
-  drawApp(app);
-});
+setOnResizeCb(() => drawApp(app));
 
-setOnLeftResizeCb(() => drawApp(app));
+setOnDraw(() => drawApp(app));

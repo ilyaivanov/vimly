@@ -1,9 +1,9 @@
 import { AppState, spacings } from "../../core";
 import { drawTextAt, findLocalItems, LocalSearchEntry } from "./modal.text";
 
-let onResizeCb: () => void;
+let onDrawCb: () => void;
 
-export const setOnLeftResizeCb = (cb: typeof onResizeCb) => (onResizeCb = cb);
+export const setOnDraw = (cb: typeof onDrawCb) => (onDrawCb = cb);
 
 export type LeftSidebar = {
   isVisible: boolean;
@@ -53,7 +53,7 @@ const keydown = (app: AppState) => {
     const results = findLocalItems(root, text);
     leftSidebar.results = results.items;
     leftSidebar.selectedItemIndex = 0;
-    onResizeCb && onResizeCb();
+    onDrawCb && onDrawCb();
   }
 };
 
