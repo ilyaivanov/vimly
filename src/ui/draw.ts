@@ -1,10 +1,16 @@
 import { AppState, ItemView, hasChildren, spacings, theme } from "../core";
 import { fillCircle, fillTextAtMiddle, outlineCircle, xOffset } from "./canvas";
 import { itemEdited } from "./input";
+import { drawSidebar } from "./leftSidebar";
 
 const { circleRadius, circleLineWidth } = spacings;
 
 export const drawApp = (app: AppState) => {
+  window.ctx.fillStyle = theme.bg;
+  window.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+  drawSidebar(app);
+  // make overflow hidden for sidebar
   window.ctx.fillStyle = theme.bg;
   window.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 

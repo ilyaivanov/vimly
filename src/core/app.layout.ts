@@ -90,8 +90,8 @@ const createView = (
     y,
     item,
     fontSize: getFontSize(gridX),
-    circleColor: getCircleColor(isSelected),
-    textColor: getTextColor(isSelected, gridX),
+    circleColor: getCircleColor(app, isSelected),
+    textColor: getTextColor(app, isSelected, gridX),
   };
   item.view = view;
   return view;
@@ -110,8 +110,8 @@ const updateView = (
 
   const isSelected = app.selectedItem == view.item;
   view.fontSize = getFontSize(gridX);
-  view.circleColor = getCircleColor(isSelected);
-  view.textColor = getTextColor(isSelected, gridX);
+  view.circleColor = getCircleColor(app, isSelected);
+  view.textColor = getTextColor(app, isSelected, gridX);
   return view;
 };
 
@@ -122,15 +122,15 @@ const getFontSize = (gridX: number) =>
     ? spacings.firstLevelfontSize
     : spacings.fontSize;
 
-const getTextColor = (isSelected: boolean, gridX: number) =>
-  isSelected
+const getTextColor = (app: AppState, isSelected: boolean, gridX: number) =>
+  app.focusOn === "main" && isSelected
     ? theme.selected
     : gridX == -1 || gridX == 0
     ? theme.firstLevelFont
     : theme.font;
 
-const getCircleColor = (isSelected: boolean) =>
-  isSelected ? theme.selected : theme.filledCircle;
+const getCircleColor = (app: AppState, isSelected: boolean) =>
+  app.focusOn === "main" && isSelected ? theme.selected : theme.filledCircle;
 
 const calcXCoordiante = (gridX: number): number => gridX * spacings.gridSize;
 

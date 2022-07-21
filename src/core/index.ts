@@ -13,6 +13,7 @@ export { syncViews } from "./app.layout";
 import { Item, AppState } from "./app";
 import { syncViews } from "./app.layout";
 import { createApp as ca } from "./persistance";
+
 export const createApp = (items: Item[]): AppState => {
   const app = ca(items);
   syncViews(app);

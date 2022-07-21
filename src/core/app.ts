@@ -1,3 +1,4 @@
+import { LeftSidebar } from "../ui/leftSidebar";
 import { ItemView } from "./app.layout";
 import { UndoState } from "./commands";
 import {
@@ -28,6 +29,9 @@ export type AppState = {
   selectedItem: Item | undefined;
   itemFocused: Item;
 
+  focusOn: "lefttab" | "main";
+
+  leftSidebar: LeftSidebar;
   undo: UndoState;
 };
 
@@ -64,7 +68,7 @@ export const focusOnParentOfFocused = (app: AppState) => {
   }
 };
 
-const focusOnItem = (app: AppState, item: Item | undefined) => {
+export const focusOnItem = (app: AppState, item: Item | undefined) => {
   if (item) {
     app.itemFocused = item;
   }
@@ -177,6 +181,7 @@ const moveItemDown = (app: AppState, item: Item) => {
     }
   }
 };
+
 export type MovingDirection = "up" | "down" | "left" | "right";
 const handlers: Record<MovingDirection, typeof moveItemLeft> = {
   down: moveItemDown,

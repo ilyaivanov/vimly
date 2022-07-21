@@ -1,4 +1,5 @@
 import { AppState, Item, item } from ".";
+import { initialState } from "../ui/leftSidebar";
 import { initialUndoState } from "./commands";
 
 const defaultItems: Item[] = [
@@ -18,7 +19,9 @@ export const createApp = (items: Item[]): AppState => {
     views: new Map(),
     selectedItem,
     itemFocused: root,
+    focusOn: "main",
     undo: initialUndoState(),
+    leftSidebar: initialState(),
   };
 
   return app;
