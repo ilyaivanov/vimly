@@ -1,4 +1,5 @@
 import { itemEdited, showInput } from "../ui/input";
+import { hideSidebar, showSidebar } from "../ui/leftSidebar";
 import {
   focusOnParentOfFocused,
   moveDown,
@@ -13,7 +14,7 @@ import { create, removeSelected, redo, undo, moveSelected } from "./commands";
 import { rotateTheme } from "./themes";
 
 export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
-  if (itemEdited) return;
+  if (itemEdited || app.leftSidebar.isVisible) return;
 
   if (event.code === "ArrowDown" || event.code === "KeyJ") {
     if (event.shiftKey && event.altKey) moveSelected(app, "down");
@@ -70,7 +71,14 @@ export const onKeyPress = (app: AppState, event: KeyboardEvent) => {
   } else if (event.code === "KeyZ" && event.ctrlKey) {
     undo(app);
     event.preventDefault();
-  }
+  } else if (event.code === "KeyF" && event.ctrlKey) {
+    if (app.leftSidebar.isVisible) hideSidebar(app);
+    else {
+      app.focusOn = "lefttab";
+      showSidebar(app);
+    }
 
+    event.preventDefault();
+  }
   syncViews(app);
 };
