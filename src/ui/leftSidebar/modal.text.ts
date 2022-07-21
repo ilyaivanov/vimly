@@ -82,10 +82,8 @@ const createTitleHighlightsFromFoundTerms = (
   const foundsAt: Map<number, string> = new Map();
 
   terms.forEach((termFound) => {
-    if (
-      !foundsAt.has(termFound.foundAt) ||
-      foundsAt.get(termFound.foundAt)!.length < termFound.term.length
-    )
+    const item = foundsAt.get(termFound.foundAt);
+    if (!item || item.length < termFound.term.length)
       foundsAt.set(termFound.foundAt, termFound.term);
   });
 
