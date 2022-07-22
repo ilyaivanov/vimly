@@ -16,6 +16,10 @@ import {
 
 export type Item = {
   title: string;
+  type: "folder" | "YTplaylist" | "YTvideo" | "YTchannel";
+
+  image?: string;
+  videoId?: string;
   isOpen: boolean;
   children: Item[];
 
@@ -43,10 +47,11 @@ export const closedItem = (title: string, children: Item[] = []): Item =>
 
 export const mapPartialItem = (item: Partial<Item> | string): Item => {
   if (typeof item === "string")
-    return { title: item, isOpen: false, children: [] };
+    return { title: item, isOpen: false, children: [], type: "folder" };
   else {
     const children = item.children ? item.children.map(mapPartialItem) : [];
     const res: Item = {
+      type: "folder",
       title: "",
       isOpen: children.length > 0,
       ...item,
