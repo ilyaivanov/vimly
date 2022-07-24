@@ -6,14 +6,14 @@ describe("BASE", () => {
   it("creating a app with two items", () => {
     const app = createApp([item("Item 1"), item("Item 2")]);
 
-    exp.itemToHaveGrid(app, "Item 1", 0, 0);
-    exp.itemToHaveGrid(app, "Item 2", 0, 1);
+    exp.itemToHaveCoordinates(app, "Item 1", 0, 0);
+    exp.itemToHaveCoordinates(app, "Item 2", 0, 1 * 28);
   });
 
   it("creating a app with nested items", () => {
     const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
-    exp.itemToHaveGrid(app, "Item 1.1", 1, 1);
+    exp.itemToHaveCoordinates(app, "Item 1.1", 1 * 28, 1 * 28);
   });
 
   it("closing an item moves items below up", () => {
@@ -40,12 +40,12 @@ describe("MOVING RIGHT", () => {
       item("Item 2"),
     ]);
 
-    exp.itemToHaveGrid(app, "Item 2", 0, 1);
+    exp.itemToHaveCoordinates(app, "Item 2", 0, 28);
 
     simulate.keydown(app, "KeyL");
 
-    exp.itemToHaveGrid(app, "Item 1.1", 1, 1);
-    exp.itemToHaveGrid(app, "Item 2", 0, 2);
+    exp.itemToHaveCoordinates(app, "Item 1.1", 28, 28);
+    exp.itemToHaveCoordinates(app, "Item 2", 0, 2 * 28);
   });
 });
 
@@ -142,9 +142,9 @@ describe("MOVING LEFT", () => {
   it("when closing an item position of items below are updated", () => {
     const app = createApp([item("Item 1", [item("Item 1.1")]), item("Item 2")]);
 
-    exp.itemToHaveGrid(app, "Item 2", 0, 2);
+    exp.itemToHaveCoordinates(app, "Item 2", 0, 2 * 28);
     simulate.keydown(app, "KeyH");
-    exp.itemToHaveGrid(app, "Item 2", 0, 1);
+    exp.itemToHaveCoordinates(app, "Item 2", 0, 1 * 28);
   });
 
   it("when trying to move left on a focused and closed item it does nothing", () => {
@@ -155,10 +155,10 @@ describe("MOVING LEFT", () => {
 
     simulate.keydown(app, "KeyL", { altKey: true });
 
-    exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
+    exp.itemToHaveCoordinates(app, "Item 1.1", 0, 1 * 28);
     simulate.keydown(app, "KeyH");
 
-    exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
+    exp.itemToHaveCoordinates(app, "Item 1.1", 0, 1 * 28);
   });
 
   it("when trying to move left on a focused and open item it does nothing", () => {
@@ -166,10 +166,10 @@ describe("MOVING LEFT", () => {
 
     simulate.keydown(app, "KeyL", { altKey: true });
 
-    exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
+    exp.itemToHaveCoordinates(app, "Item 1.1", 0, 1 * 28);
     simulate.keydown(app, "KeyH");
 
-    exp.itemToHaveGrid(app, "Item 1.1", 0, 1);
+    exp.itemToHaveCoordinates(app, "Item 1.1", 0, 1 * 28);
   });
 });
 
@@ -224,7 +224,7 @@ describe("FOCUS", () => {
     simulate.keydown(app, "KeyJ");
     simulate.keydown(app, "KeyL", { altKey: true });
 
-    exp.itemToHaveGrid(app, "Item 1.1", -1, 0);
+    exp.itemToHaveCoordinates(app, "Item 1.1", -1 * 28, -10);
 
     exp.itemToHaveCoordinates(
       app,
@@ -239,7 +239,7 @@ describe("EDITING", () => {
   it("pressing o creates an item under", () => {
     const app = createApp([item("Item 1"), item("Item 2")]);
 
-    exp.itemToHaveGrid(app, "Item 2", 0, 1);
+    exp.itemToHaveCoordinates(app, "Item 2", 0, 1 * 28);
 
     simulate.keydown(app, "KeyO");
 
@@ -247,7 +247,7 @@ describe("EDITING", () => {
 
     exp.selectedItemTitle(app, "");
 
-    exp.itemToHaveGrid(app, "Item 2", 0, 2);
+    exp.itemToHaveCoordinates(app, "Item 2", 0, 2 * 28);
   });
 
   it("pressing O creates an item before", () => {
@@ -319,12 +319,12 @@ describe("MOVEMENT", () => {
 
     simulate.selectItem(app, "Item 2");
 
-    exp.itemToHaveGrid(app, "Item 1", 0, 0);
+    exp.itemToHaveCoordinates(app, "Item 1", 0, 0);
 
     simulate.keydown(app, "KeyK", { shiftKey: true, altKey: true });
 
     exp.firstLevelItems(app, ["Item 2", "Item 1"]);
-    exp.itemToHaveGrid(app, "Item 2", 0, 0);
+    exp.itemToHaveCoordinates(app, "Item 2", 0, 0);
   });
 });
 
@@ -338,7 +338,7 @@ describe("REMOVING", () => {
 
     simulate.selectItem(app, "Item 2");
 
-    exp.itemToHaveGrid(app, "Item 3", 0, 4);
+    exp.itemToHaveCoordinates(app, "Item 3", 0, 4 * 28);
 
     simulate.keydown(app, "KeyX");
 
@@ -346,7 +346,7 @@ describe("REMOVING", () => {
 
     exp.selectedItemTitle(app, "Item 2.2");
 
-    exp.itemToHaveGrid(app, "Item 3", 0, 3);
+    exp.itemToHaveCoordinates(app, "Item 3", 0, 3 * 28);
 
     simulate.selectItem(app, "Item 1");
     simulate.keydown(app, "KeyX");

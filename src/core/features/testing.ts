@@ -66,18 +66,6 @@ export const exp = {
     expect(item.children.map((r) => r.title)).toEqual(children);
   },
 
-  itemToHaveGrid: (
-    app: AppState,
-    item: string,
-    gridX: number,
-    gridY: number
-  ) => {
-    const view = getView(app, item);
-
-    verifyViewProp(view, "gridX", gridX);
-    verifyViewProp(view, "gridY", gridY);
-  },
-
   itemToHaveCoordinates: (
     app: AppState,
     item: string,
