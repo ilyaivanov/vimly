@@ -1,6 +1,6 @@
 jest.mock("../../ui/input");
 import { createApp, item } from "..";
-import { exp, actions } from "../tests/testing";
+import { exp, actions } from "./testing";
 
 it("when removing an item and pressing undo that items appears", () => {
   const app = createApp([item("Item 1"), item("Item 2"), item("Item 3")]);
